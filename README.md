@@ -92,7 +92,7 @@ receiverCfg.RegisterForReceive<INewContact>();
 sender.CreateContact("Marcel", "Kloubert");
 ```
 
-Keep in mind, that it does not make sense to define other things as proprties in interface based contracts, because the `MessageDistributor` will create dynamic proxy classes by default.
+Keep in mind, that it does not make sense to define other things as properties in interface based contracts, because the `MessageDistributor` will create dynamic proxy classes by default.
 
 If you want to define other things like methods, e.g., you have to define a non-abstract/-static class as contract or define an own proxy class. 
 
