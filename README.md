@@ -89,3 +89,24 @@ receiverCfg.RegisterForReceive<INewContact>();
 // and send it to "receiver"
 sender.CreateContact("Marcel", "Kloubert");
 ```
+
+### New contact (the attribute way)
+
+Instead of calling `Subscribe` method in an `MessageHandlerBase` object, you can use the `ReceiveMessageAttribute` to do this.
+
+This makes your receiver class much more compact:
+
+```csharp
+public class NewContactReceiver : MessageHandlerBase
+{
+    [ReceiveMessage(typeof(INewContact))]
+    protected void HandleNewContact(IMessageContext<INewContact> msg)
+    {
+        // the "INewContact" is wrapped and stored
+        // in "Message" property
+    
+        Console.WriteLine("Lastname: {0}, Firstname: {1}",
+                          msg.Message.Lastname, msg.Message.Firstname);
+    }
+}
+```
