@@ -23,7 +23,7 @@ public interface INewContact
 }
 ```
 
-Now you should define a message handler that sends the message. 
+Now you should define a message handler that sends the message:
 
 ```csharp
 public class NewContactSender : MessageHandlerBase
