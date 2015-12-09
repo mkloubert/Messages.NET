@@ -51,8 +51,8 @@ public class NewContactReceiver : MessageHandlerBase
 {
     protected void HandleNewContact(IMessageContext<INewContact> msg)
     {
-        // the "INewContact" is wrapped and stored
-        // in "Message" property
+        // the "INewContact" object is wrapped
+        // and stored in "Message" property
     
         Console.WriteLine("Lastname: {0}, Firstname: {1}",
                           msg.Message.Lastname, msg.Message.Firstname);
