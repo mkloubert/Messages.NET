@@ -92,6 +92,10 @@ receiverCfg.RegisterForReceive<INewContact>();
 sender.CreateContact("Marcel", "Kloubert");
 ```
 
+Keep in mind, that it does not make sense to define other things as proprties in interface based contracts, because the `MessageDistributor` will create dynamic proxy classes by default.
+
+If you want to define other things like methods, e.g., you have to define a non-abstract/-static class as contract or define an own proxy class. 
+
 ### New contact (the attribute way)
 
 Instead of calling `Subscribe` method in an `MessageHandlerBase` object, you can use the `ReceiveMessageAttribute` to do this.
@@ -127,5 +131,32 @@ public class NewContactReceiver : MessageHandlerBase
         Console.WriteLine("Lastname: {0}, Firstname: {1}",
                           msg.Message.Lastname, msg.Message.Firstname);
     }
+}
+```
+
+### New contact (own proxy class)
+
+If you want to define an own proxy class for a contract, you can use `MessageInstanceAttribute` for that.
+
+First define the proxy class:
+
+```csharp
+public class NewContact : INewContact
+{
+    public string Firstname { get; set; }
+
+    public string Lastname { get; set; }
+}
+```
+
+Then mark the contract with the attribute:
+
+```csharp
+[MessageInstance(typeof(NewContact))]
+public interface INewContact
+{
+    string Firstname { get; set; }
+
+    string Lastname { get; set; }
 }
 ```
