@@ -44,6 +44,9 @@ namespace MarcelJoachimKloubert.Messages.Tests
     {
         private static int _instances = 0;
 
+        [ReceiveMessage]
+        private IMessageContext<ITestMessage> _lastTestMsg;
+
         public MyMessageHandler()
         {
             Id = ++_instances;
@@ -51,7 +54,18 @@ namespace MarcelJoachimKloubert.Messages.Tests
 
         public int Id { get; private set; }
 
-        [ReceiveMessage(typeof(ITestMessage))]
+        [ReceiveMessage]
+        public IMessageContext<ITestMessage> TestMessage
+        {
+            set
+            {
+                if (value != null)
+                {
+                }
+            }
+        }
+
+        [ReceiveMessage]
         private void HandleTestMessage(IMessageContext<ITestMessage> msg)
         {
             if (Id != null)
