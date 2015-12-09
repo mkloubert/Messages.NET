@@ -96,7 +96,7 @@ Keep in mind, that it does not make sense to define other things as proprties in
 
 If you want to define other things like methods, e.g., you have to define a non-abstract/-static class as contract or define an own proxy class. 
 
-### New contact (the attribute way)
+#### The attribute way
 
 Instead of calling `Subscribe` method in an `MessageHandlerBase` object, you can use the `ReceiveMessageAttribute` to do this.
 
@@ -134,7 +134,7 @@ public class NewContactReceiver : MessageHandlerBase
 }
 ```
 
-### New contact (own proxy class)
+#### Own proxy class
 
 If you want to define an own proxy class for a contract, you can use `MessageInstanceAttribute` for that.
 
