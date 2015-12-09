@@ -30,6 +30,11 @@ public class NewContactSender : MessageHandlerBase
 {
     public void CreateContact(string firstName, string lastName)
     {
+        // create a new instance of "INewContact"
+        // that is wrapped into a context object
+        //
+        // the new "INewContact" instance is stored
+        // in "Message" property
         var newMsgCtx = Context.CreateMessage<INewContact>();
         newMsgCtx.Message.Firstname = firstname;
         newMsgCtx.Message.Lastname = lastName;
@@ -46,8 +51,11 @@ public class NewContactReceiver : MessageHandlerBase
 {
     protected void HandleNewContact(IMessageContext<INewContact> msg)
     {
+        // the "INewContact" is wrapped and stored
+        // in "Message" property
+    
         Console.WriteLine("Lastname: {0}, Firstname: {1}",
-                          msg.Lastname, msg.Firstname);
+                          msg.Message.Lastname, msg.Message.Firstname);
     }
     
     protected override void OnContextUpdated(IMessageHandlerContext oldCtx, IMessageHandlerContext newCtx)
@@ -67,17 +75,17 @@ var receiver = new NewContactReceiver();
 
 var distributor = new MessageDistributor();
 
-// register the "sender" in distributor
-// and configure it
+// register the "sender" in "distributor"
+// and configure it for sending
 var senderCfg = distributor.RegisterHandler(sender);
 senderCfg.RegisterForSend<ITestMessage>();
 
-// register the "receiver" in distributor
-// and configure it
+// register the "receiver" in "distributor"
+// and configure it for receiving
 var receiverCfg = distributor.RegisterHandler(receiver);
 receiverCfg.RegisterForReceive<ITestMessage>();
 
-// now create a new INewContact instance
-// and send it to receiver
+// now create a new "INewContact" instance
+// and send it to "receiver"
 sender.CreateContact("Marcel", "Kloubert");
 ```
