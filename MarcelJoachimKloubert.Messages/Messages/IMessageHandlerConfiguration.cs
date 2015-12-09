@@ -36,14 +36,19 @@ namespace MarcelJoachimKloubert.Messages
     /// </summary>
     public interface IMessageHandlerConfiguration
     {
-        #region Properties (1)
+        #region Properties (2)
 
         /// <summary>
         /// Gets the underlying handler.
         /// </summary>
         IMessageHandler Handler { get; }
 
-        #endregion Properties (1)
+        /// <summary>
+        /// Gets or sets if the underlying distributor owns the handler or not.
+        /// </summary>
+        bool OwnsHandler { get; set; }
+
+        #endregion Properties (2)
 
         #region Methods (4)
 

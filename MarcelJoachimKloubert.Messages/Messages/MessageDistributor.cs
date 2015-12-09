@@ -38,7 +38,7 @@ namespace MarcelJoachimKloubert.Messages
     /// <summary>
     /// A simple and configurable message distributor.
     /// </summary>
-    public partial class MessageDistributor
+    public partial class MessageDistributor : IDisposable
     {
         #region Fields (3)
 
@@ -48,7 +48,7 @@ namespace MarcelJoachimKloubert.Messages
 
         #endregion Fields (3)
 
-        #region Constructors (1)
+        #region Constructors (2)
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageDistributor" /> class.
@@ -71,23 +71,97 @@ namespace MarcelJoachimKloubert.Messages
                                                                            GetHashCode()));
         }
 
-        #endregion Constructors (1)
+        /// <summary>
+        /// Frees resource of that object.
+        /// </summary>
+        ~MessageDistributor()
+        {
+            Dispose(false);
+        }
 
-        #region Properties (2)
+        #endregion Constructors (2)
+
+        #region Properties (4)
+
+        /// <summary>
+        /// Gets if the handler has been disposed or not.
+        /// </summary>
+        public virtual bool IsDisposed { get; protected set; }
 
         /// <summary>
         /// Gets if the distributor has been initialized or not.
         /// </summary>
-        public bool IsInitialized { get; private set; }
+        public virtual bool IsInitialized { get; protected set; }
 
         /// <summary>
         /// Gets the object for thread safe operations.
         /// </summary>
-        public object SyncRoot { get; private set; }
+        public virtual object SyncRoot { get; protected set; }
 
-        #endregion Properties (2)
+        /// <summary>
+        /// Gets or sets an object that should be linked with that instance.
+        /// </summary>
+        public virtual object Tag { get; set; }
 
-        #region Methods (6)
+        #endregion Properties (4)
+
+        #region Methods (9)
+
+        /// <inheriteddoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            lock (SyncRoot)
+            {
+                if (disposing && IsDisposed)
+                {
+                    return;
+                }
+
+                var occuredException = new List<Exception>();
+
+                if (disposing)
+                {
+                    using (var e = _HANDLERS.GetEnumerator())
+                    {
+                        while (e.MoveNext())
+                        {
+                            try
+                            {
+                                var ctx = e.Current;
+
+                                if (ctx.Config.OwnsHandler)
+                                {
+                                    if (!ctx.Handler.IsDisposed)
+                                    {
+                                        ctx.Handler.Dispose();
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                occuredException.Add(ex);
+                            }
+                        }
+                    }
+                }
+
+                if (disposing)
+                {
+                    if (occuredException.Count > 0)
+                    {
+                        throw new AggregateException(occuredException);
+                    }
+
+                    IsDisposed = true;
+                }
+            }
+        }
 
         private static MethodInfo GetSubscribeMethod(IMessageHandlerContext ctx)
         {
@@ -132,10 +206,13 @@ namespace MarcelJoachimKloubert.Messages
         /// Initialized the object.
         /// </summary>
         /// <exception cref="InvalidOperationException">Object has already been initialized.</exception>
+        /// <exception cref="ObjectDisposedException">Object has already been disposed.</exception>
         public void Initialize()
         {
             lock (SyncRoot)
             {
+                ThrowIfDisposed();
+
                 if (IsInitialized)
                 {
                     throw new InvalidOperationException();
@@ -197,6 +274,8 @@ namespace MarcelJoachimKloubert.Messages
                            .UpdateContext(ctx);
                     }
                 }
+
+                IsInitialized = true;
             }
         }
 
@@ -204,8 +283,10 @@ namespace MarcelJoachimKloubert.Messages
         /// Registers a handler.
         /// </summary>
         /// <param name="handler">The handler to register.</param>
+        /// <param name="ownsHandler">Own <paramref name="handler" /> or not.</param>
         /// <returns>The configuration object.</returns>
-        public IMessageHandlerConfiguration RegisterHandler(IMessageHandler handler)
+        /// <exception cref="ObjectDisposedException">Object has already been disposed.</exception>
+        public IMessageHandlerConfiguration RegisterHandler(IMessageHandler handler, bool ownsHandler = false)
         {
             lock (SyncRoot)
             {
@@ -214,10 +295,13 @@ namespace MarcelJoachimKloubert.Messages
                     throw new ArgumentNullException("handler");
                 }
 
+                ThrowIfDisposed();
+
                 var result = new MessageHandlerConfiguration()
                 {
                     Distributor = this,
                     Handler = handler,
+                    OwnsHandler = ownsHandler,
                 };
 
                 var ctx = new MessageHandlerContext
@@ -301,6 +385,20 @@ namespace MarcelJoachimKloubert.Messages
                       parameters: new object[] { action });
         }
 
-        #endregion Methods (6)
+        /// <summary>
+        /// Throws an exception if <see cref="MessageDistributor.IsDisposed" /> is <see langword="true" />.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">
+        /// <see cref="MessageDistributor.IsDisposed" /> is <see langword="true" />.
+        /// </exception>
+        protected void ThrowIfDisposed()
+        {
+            if (IsDisposed)
+            {
+                throw new ObjectDisposedException(objectName: GetType().FullName);
+            }
+        }
+
+        #endregion Methods (9)
     }
 }

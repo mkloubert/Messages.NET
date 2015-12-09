@@ -60,6 +60,8 @@ namespace MarcelJoachimKloubert.Messages
 
             public IMessageHandler Handler { get; internal set; }
 
+            public bool OwnsHandler { get; set; }
+
             internal object SyncRoot { get; private set; }
 
             #endregion Properties (3)

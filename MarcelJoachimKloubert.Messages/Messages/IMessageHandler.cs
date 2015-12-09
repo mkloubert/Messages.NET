@@ -27,13 +27,24 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using System;
+
 namespace MarcelJoachimKloubert.Messages
 {
     /// <summary>
     /// Describes an object that handles messages.
     /// </summary>
-    public interface IMessageHandler
+    public interface IMessageHandler : IDisposable
     {
+        #region Properties (1)
+
+        /// <summary>
+        /// Gets if the handler has been disposed or not.
+        /// </summary>
+        bool IsDisposed { get; }
+
+        #endregion Properties (1)
+
         #region Methods (1)
 
         /// <summary>
@@ -42,6 +53,6 @@ namespace MarcelJoachimKloubert.Messages
         /// <param name="ctx">The context to update.</param>
         void UpdateContext(IMessageHandlerContext ctx);
 
-        #endregion
+        #endregion Methods (1)
     }
 }

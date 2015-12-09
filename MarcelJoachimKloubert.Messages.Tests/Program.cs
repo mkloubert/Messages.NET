@@ -65,8 +65,8 @@ namespace MarcelJoachimKloubert.Messages.Tests
             }
         }
 
-        [ReceiveMessage]
-        private void HandleTestMessage(IMessageContext<ITestMessage> msg)
+        [ReceiveMessage(typeof(ITestMessage))]
+        private void HandleTestMessage(IMessageContext<object> msg)
         {
             if (Id != null)
             {

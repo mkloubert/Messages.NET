@@ -27,6 +27,8 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using System;
+
 namespace MarcelJoachimKloubert.Messages
 {
     /// <summary>
@@ -34,7 +36,7 @@ namespace MarcelJoachimKloubert.Messages
     /// </summary>
     public abstract class MessageHandlerBase : IMessageHandler
     {
-        #region Constructors (1)
+        #region Constructors (2)
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageHandlerBase" /> class.
@@ -45,23 +47,64 @@ namespace MarcelJoachimKloubert.Messages
             SyncRoot = syncRoot ?? new object();
         }
 
-        #endregion Constructors (1)
+        /// <summary>
+        /// Frees resource of that object.
+        /// </summary>
+        ~MessageHandlerBase()
+        {
+            Dispose(false);
+        }
 
-        #region Properties (2)
+        #endregion Constructors (2)
+
+        #region Properties (4)
+
+        /// <inheriteddoc />
+        public virtual bool IsDisposed { get; protected set; }
 
         /// <summary>
         /// Gets the current context.
         /// </summary>
-        public IMessageHandlerContext Context { get; private set; }
+        public virtual IMessageHandlerContext Context { get; protected set; }
 
         /// <summary>
         /// Gets the object for thread safe operations.
         /// </summary>
-        public object SyncRoot { get; private set; }
+        public virtual object SyncRoot { get; private set; }
 
-        #endregion Properties (2)
+        /// <summary>
+        /// Gets or sets an object that should be linked with that instance.
+        /// </summary>
+        public virtual object Tag { get; set; }
 
-        #region Methods (2)
+        #endregion Properties (4)
+
+        #region Methods (6)
+
+        /// <inheriteddoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            var isDisposedValue = IsDisposed;
+            if (disposing && isDisposedValue)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                isDisposedValue = true;
+            }
+
+            OnDispose(disposing, ref isDisposedValue);
+
+            IsDisposed = isDisposedValue;
+        }
 
         /// <summary>
         /// Is invoked AFTER value of <see cref="MessageHandlerBase.Context" /> has been updated.
@@ -73,6 +116,33 @@ namespace MarcelJoachimKloubert.Messages
             // do nothing by default
         }
 
+        /// <summary>
+        /// The logic for the <see cref="MessageHandlerBase.Dispose()" /> method and the destructor.
+        /// </summary>
+        /// <param name="disposing">
+        /// <see cref="MessageHandlerBase.Dispose()" /> method (<see langword="true" />)
+        /// or the destructor (<see langword="false" />).
+        /// </param>
+        /// <param name="isDisposed">The new value for <see cref="MessageHandlerBase.IsDisposed" /> property.</param>
+        protected virtual void OnDispose(bool disposing, ref bool isDisposed)
+        {
+            // do nothing by default
+        }
+
+        /// <summary>
+        /// Throws an exception if <see cref="MessageHandlerBase.IsDisposed" /> is <see langword="true" />.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">
+        /// <see cref="MessageHandlerBase.IsDisposed" /> is <see langword="true" />.
+        /// </exception>
+        protected void ThrowIfDisposed()
+        {
+            if (IsDisposed)
+            {
+                throw new ObjectDisposedException(objectName: GetType().FullName);
+            }
+        }
+
         /// <inheriteddoc />
         public void UpdateContext(IMessageHandlerContext ctx)
         {
@@ -82,6 +152,6 @@ namespace MarcelJoachimKloubert.Messages
             OnContextUpdated(oldCtx, ctx);
         }
 
-        #endregion Methods (2)
+        #endregion Methods (6)
     }
 }
