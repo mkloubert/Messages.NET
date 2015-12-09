@@ -78,12 +78,12 @@ var distributor = new MessageDistributor();
 // register the "sender" in "distributor"
 // and configure it for sending
 var senderCfg = distributor.RegisterHandler(sender);
-senderCfg.RegisterForSend<ITestMessage>();
+senderCfg.RegisterForSend<INewContact>();
 
 // register the "receiver" in "distributor"
 // and configure it for receiving
 var receiverCfg = distributor.RegisterHandler(receiver);
-receiverCfg.RegisterForReceive<ITestMessage>();
+receiverCfg.RegisterForReceive<INewContact>();
 
 // now create a new "INewContact" instance
 // and send it to "receiver"
