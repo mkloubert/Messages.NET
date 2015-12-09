@@ -36,6 +36,15 @@ namespace MarcelJoachimKloubert.Messages
     /// </summary>
     public interface IMessageHandlerContext
     {
+        #region Properties (1)
+
+        /// <summary>
+        /// Gets the underlying handler.
+        /// </summary>
+        IMessageHandler Handler { get; }
+
+        #endregion Properties (1)
+
         #region Methods (2)
 
         /// <summary>
@@ -52,6 +61,6 @@ namespace MarcelJoachimKloubert.Messages
         /// <param name="handler"></param>
         void Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler);
 
-        #endregion
+        #endregion Methods (2)
     }
 }

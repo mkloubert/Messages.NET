@@ -42,7 +42,7 @@ namespace MarcelJoachimKloubert.Messages
             public readonly ICollection<Type> SEND_TYPES;
             internal MessageDistributor Distributor;
 
-            #endregion Fields (2)
+            #endregion Fields (3)
 
             #region Constructors (1)
 

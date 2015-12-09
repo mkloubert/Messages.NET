@@ -67,6 +67,7 @@
     </Compile>
     <Compile Include="Messages\MessageHandlerBase.cs" />
     <Compile Include="Messages\MessageInstanceAttribute.cs" />
+    <Compile Include="Messages\ReceiveMessageAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

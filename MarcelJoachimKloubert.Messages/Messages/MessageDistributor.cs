@@ -29,6 +29,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -86,7 +87,46 @@ namespace MarcelJoachimKloubert.Messages
 
         #endregion Properties (2)
 
-        #region Methods (2)
+        #region Methods (6)
+
+        private static MethodInfo GetSubscribeMethod(IMessageHandlerContext ctx)
+        {
+            var ctxType = ctx.GetType();
+
+            return ctxType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                          .First(x =>
+                          {
+                              if (x.Name != "Subscribe")
+                              {
+                                  return false;
+                              }
+
+                              if (!x.IsGenericMethod)
+                              {
+                                  return false;
+                              }
+
+                              var genericParams = x.GetGenericArguments();
+                              if (genericParams.Length != 1)
+                              {
+                                  return false;
+                              }
+
+                              var @params = x.GetParameters();
+                              if (@params.Length != 1)
+                              {
+                                  return false;
+                              }
+
+                              var genericMessageCtxType = typeof(IMessageContext<>);
+                              var messageCtxType = genericMessageCtxType.MakeGenericType(genericParams[0]);
+
+                              var genericMethodActionType = typeof(Action<>);
+                              var methodActionType = genericMethodActionType.MakeGenericType(messageCtxType);
+
+                              return methodActionType.Equals(@params[0].ParameterType);
+                          });
+        }
 
         /// <summary>
         /// Initialized the object.
@@ -106,6 +146,53 @@ namespace MarcelJoachimKloubert.Messages
                     while (e.MoveNext())
                     {
                         var ctx = e.Current;
+
+                        var ctxType = ctx.GetType();
+                        var handlerType = ctx.Handler.GetType();
+
+                        var flags = BindingFlags.Instance | BindingFlags.Static |
+                                    BindingFlags.Public | BindingFlags.NonPublic;
+
+                        var members = Enumerable.Empty<MemberInfo>()
+                                                .Concat(handlerType.GetMethods(flags))
+                                                .Concat(handlerType.GetProperties(flags))
+                                                .Concat(handlerType.GetFields(flags));
+
+                        using (var eMembers = members.GetEnumerator())
+                        {
+                            while (eMembers.MoveNext())
+                            {
+                                var member = eMembers.Current;
+
+                                // automatically subscribe for receiving messages
+                                // of a specific type
+                                var receivceMsgAttribs = member.GetCustomAttributes(typeof(ReceiveMessageAttribute), true)
+                                                               .Cast<ReceiveMessageAttribute>()
+                                                               .Where(x => x.MessageType != null);
+                                {
+                                    using (var eAttribs = receivceMsgAttribs.GetEnumerator())
+                                    {
+                                        while (eAttribs.MoveNext())
+                                        {
+                                            var attrib = eAttribs.Current;
+
+                                            if (member is MethodInfo)
+                                            {
+                                                SubscribeMethod(ctx, (MethodInfo)member, attrib.MessageType);
+                                            }
+                                            else if (member is PropertyInfo)
+                                            {
+                                                SubscribeProperty(ctx, (PropertyInfo)member, attrib.MessageType);
+                                            }
+                                            else if (member is FieldInfo)
+                                            {
+                                                SubscribeField(ctx, (FieldInfo)member, attrib.MessageType);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         ctx.Handler
                            .UpdateContext(ctx);
@@ -145,6 +232,54 @@ namespace MarcelJoachimKloubert.Messages
             }
         }
 
-        #endregion Methods (2)
+        private static void SubscribeField(IMessageHandlerContext ctx, FieldInfo field, Type msgType)
+        {
+            var genericSubscribeMethod = GetSubscribeMethod(ctx);
+
+            var sm = genericSubscribeMethod.MakeGenericMethod(msgType);
+
+            var action = new Action<object>((m) =>
+                {
+                    field.SetValue(obj: ctx,
+                                   value: m);
+                });
+
+            sm.Invoke(obj: ctx,
+                      parameters: new object[] { action });
+        }
+
+        private static void SubscribeMethod(IMessageHandlerContext ctx, MethodInfo method, Type msgType)
+        {
+            var genericSubscribeMethod = GetSubscribeMethod(ctx);
+
+            var sm = genericSubscribeMethod.MakeGenericMethod(msgType);
+
+            var action = new Action<object>((m) =>
+                {
+                    method.Invoke(obj: ctx.Handler,
+                                  parameters: new object[] { m });
+                });
+
+            sm.Invoke(obj: ctx,
+                      parameters: new object[] { action });
+        }
+
+        private static void SubscribeProperty(IMessageHandlerContext ctx, PropertyInfo property, Type msgType)
+        {
+            var genericSubscribeMethod = GetSubscribeMethod(ctx);
+
+            var sm = genericSubscribeMethod.MakeGenericMethod(msgType);
+
+            var action = new Action<object>((m) =>
+                {
+                    property.SetValue(ctx, m,
+                                      index: null);
+                });
+
+            sm.Invoke(obj: ctx,
+                      parameters: new object[] { action });
+        }
+
+        #endregion Methods (6)
     }
 }

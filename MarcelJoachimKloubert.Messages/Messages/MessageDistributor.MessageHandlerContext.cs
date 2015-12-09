@@ -60,7 +60,7 @@ namespace MarcelJoachimKloubert.Messages
 
             #region Properties (2)
 
-            internal IMessageHandler Handler
+            public IMessageHandler Handler
             {
                 get { return Config.Handler; }
             }

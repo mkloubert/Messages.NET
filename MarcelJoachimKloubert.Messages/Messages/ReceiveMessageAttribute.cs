@@ -32,29 +32,29 @@ using System;
 namespace MarcelJoachimKloubert.Messages
 {
     /// <summary>
-    /// Defines the type that could be used to create an instance for an interface.
+    /// Marks a member for receiving a message.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Interface,
-                    AllowMultiple = false, Inherited = false)]
-    public class MessageInstanceAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property,
+                    Inherited = true, AllowMultiple = true)]
+    public class ReceiveMessageAttribute : Attribute
     {
         #region Constructors (2)
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageInstanceAttribute" /> class.
         /// </summary>
-        public MessageInstanceAttribute()
-            : this(instanceType: null)
+        public ReceiveMessageAttribute()
+            : this(msgType: null)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MessageInstanceAttribute" /> class.
+        /// Initializes a new instance of the <see cref="ReceiveMessageAttribute" /> class.
         /// </summary>
-        /// <param name="instanceType">The value for the <see cref="MessageInstanceAttribute.InstanceType" /> property.</param>
-        public MessageInstanceAttribute(Type instanceType)
+        /// <param name="msgType">The value for the <see cref="ReceiveMessageAttribute.MessageType" /> property.</param>
+        public ReceiveMessageAttribute(Type msgType)
         {
-            InstanceType = instanceType;
+            MessageType = msgType;
         }
 
         #endregion Constructors (2)
@@ -62,9 +62,9 @@ namespace MarcelJoachimKloubert.Messages
         #region Properties (1)
 
         /// <summary>
-        /// Gets or sets the type that is used to create an instance for the underlying interface.
+        /// Gets or sets the message type.
         /// </summary>
-        public Type InstanceType { get; set; }
+        public Type MessageType { get; set; }
 
         #endregion Properties (1)
     }

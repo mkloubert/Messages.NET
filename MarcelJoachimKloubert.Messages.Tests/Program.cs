@@ -29,7 +29,6 @@
 
 namespace MarcelJoachimKloubert.Messages.Tests
 {
-    
     public class TestMessageClass : ITestMessage
     {
         public int A { get; set; }
@@ -41,9 +40,9 @@ namespace MarcelJoachimKloubert.Messages.Tests
         int A { get; set; }
     }
 
-    class MyMessageHandler : MessageHandlerBase
+    internal class MyMessageHandler : MessageHandlerBase
     {
-        static int _instances = 0;
+        private static int _instances = 0;
 
         public MyMessageHandler()
         {
@@ -52,19 +51,12 @@ namespace MarcelJoachimKloubert.Messages.Tests
 
         public int Id { get; private set; }
 
+        [ReceiveMessage(typeof(ITestMessage))]
         private void HandleTestMessage(IMessageContext<ITestMessage> msg)
         {
             if (Id != null)
             {
-                
             }
-        }
-
-        protected override void OnContextUpdated(IMessageHandlerContext oldCtx, IMessageHandlerContext newCtx)
-        {
-            base.OnContextUpdated(oldCtx, newCtx);
-
-            newCtx.Subscribe<ITestMessage>(HandleTestMessage);
         }
 
         public void SendTestMessage()
@@ -91,16 +83,14 @@ namespace MarcelJoachimKloubert.Messages.Tests
                 var distributor = new MessageDistributor();
 
                 var cfg1 = distributor.RegisterHandler(handler1);
-                // cfg1.RegisterForSend<ITestMessage>();
+                cfg1.RegisterForSend<ITestMessage>();
 
                 var cfg2 = distributor.RegisterHandler(handler2);
                 cfg2.RegisterForReceive<ITestMessage>();
-                
+
                 distributor.Initialize();
 
                 handler1.SendTestMessage();
-
-                
             }
             catch
             {
