@@ -62,6 +62,8 @@ public class NewContactReceiver : MessageHandlerBase
     {
         base.OnContextUpdated(oldCtx, newCtx);
 
+        // subscribe "HandleNewContact" for receiving
+        // "INewContact" objects
         newCtx.Subscribe<INewContact>(HandleNewContact);
     }
 }
