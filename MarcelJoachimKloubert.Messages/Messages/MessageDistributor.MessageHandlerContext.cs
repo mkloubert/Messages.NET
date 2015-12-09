@@ -243,6 +243,11 @@ namespace MarcelJoachimKloubert.Messages
 
                 lock (Config.SyncRoot)
                 {
+                    if (Config.Handler.IsDisposed)
+                    {
+                        return false;
+                    }
+
                     if (!Config.RECEIVE_TYPES.Contains(typeof(TMsg)))
                     {
                         // not configured to eeceive the type of message
