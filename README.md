@@ -108,11 +108,7 @@ public class NewContactReceiver : MessageHandlerBase
     [ReceiveMessage(typeof(INewContact))]
     protected void HandleNewContact(IMessageContext<INewContact> msg)
     {
-        // the "INewContact" is wrapped and stored
-        // in "Message" property
-    
-        Console.WriteLine("Lastname: {0}, Firstname: {1}",
-                          msg.Message.Lastname, msg.Message.Firstname);
+        // ...
     }
 }
 ```
@@ -125,11 +121,7 @@ public class NewContactReceiver : MessageHandlerBase
     [ReceiveMessage]
     protected void HandleNewContact(IMessageContext<INewContact> msg)
     {
-        // the "INewContact" is wrapped and stored
-        // in "Message" property
-    
-        Console.WriteLine("Lastname: {0}, Firstname: {1}",
-                          msg.Message.Lastname, msg.Message.Firstname);
+         // ...
     }
 }
 ```
