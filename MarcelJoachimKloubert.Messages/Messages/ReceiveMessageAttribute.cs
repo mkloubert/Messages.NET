@@ -43,8 +43,9 @@ namespace MarcelJoachimKloubert.Messages
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageInstanceAttribute" /> class.
         /// </summary>
-        public ReceiveMessageAttribute()
-            : this(msgType: null)
+        /// <param name="threadOption">The value for the <see cref="ReceiveMessageAttribute.ThreadOption" /> property.</param>
+        public ReceiveMessageAttribute(MessageThreadOption threadOption = MessageThreadOption.Current)
+            : this(msgType: null, threadOption: threadOption)
         {
         }
 
@@ -52,20 +53,27 @@ namespace MarcelJoachimKloubert.Messages
         /// Initializes a new instance of the <see cref="ReceiveMessageAttribute" /> class.
         /// </summary>
         /// <param name="msgType">The value for the <see cref="ReceiveMessageAttribute.MessageType" /> property.</param>
-        public ReceiveMessageAttribute(Type msgType)
+        /// <param name="threadOption">The value for the <see cref="ReceiveMessageAttribute.ThreadOption" /> property.</param>
+        public ReceiveMessageAttribute(Type msgType, MessageThreadOption threadOption = MessageThreadOption.Current)
         {
             MessageType = msgType;
+            ThreadOption = threadOption;
         }
 
         #endregion Constructors (2)
 
-        #region Properties (1)
+        #region Properties (2)
 
         /// <summary>
         /// Gets or sets the message type.
         /// </summary>
         public Type MessageType { get; set; }
 
-        #endregion Properties (1)
+        /// <summary>
+        /// Gets or sets how a member should be executed.
+        /// </summary>
+        public MessageThreadOption ThreadOption { get; set; }
+
+        #endregion Properties (2)
     }
 }

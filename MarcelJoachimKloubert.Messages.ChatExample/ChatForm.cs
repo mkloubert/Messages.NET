@@ -27,60 +27,103 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Messages.ChatExample.Contracts;
 using System;
+using System.Text;
+using System.Windows.Forms;
 
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Messages.ChatExample
 {
-    /// <summary>
-    /// Describes the configuration for an <see cref="IMessageHandler" /> object.
-    /// </summary>
-    public interface IMessageHandlerConfiguration
+    public partial class ChatForm : Form, IMessageHandler
     {
-        #region Properties (1)
+        #region Fields (1)
 
-        /// <summary>
-        /// Gets or sets if the underlying distributor owns the handler or not.
-        /// </summary>
-        bool OwnsHandler { get; set; }
+        private static int _currentId;
 
-        #endregion Properties (1)
+        #endregion Fields (1)
 
-        #region Methods (4)
+        #region Constructors (1)
 
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForReceive<TMsg>();
+        public ChatForm()
+        {
+            InitializeComponent();
 
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForReceive(Type msgType);
+            Id = ++_currentId;
+            Text = ChatName;
+        }
 
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForSend<TMsg>();
+        #endregion Constructors (1)
 
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForSend(Type msgType);
+        #region Events (1)
 
-        #endregion Methods (4)
+        private void Button_SendMessage_Click(object sender, EventArgs e)
+        {
+            var msg = TextBox_ChatMessage.Text;
+            if (string.IsNullOrWhiteSpace(msg))
+            {
+                return;
+            }
+
+            var newChatMsg = MessageHandlerContext.CreateMessage<INewChatMessage>();
+            newChatMsg.Message.From = ChatName;
+            newChatMsg.Message.Message = msg;
+            newChatMsg.Message.Time = DateTimeOffset.Now;
+
+            newChatMsg.Send();
+            AppendChatMessage(newChatMsg.Message);
+        }
+
+        #endregion Events (1)
+
+        #region Properties (3)
+
+        public string ChatName
+        {
+            get { return "Guy #" + Id; }
+        }
+
+        public IMessageHandlerContext MessageHandlerContext { get; private set; }
+
+        public int Id { get; private set; }
+
+        #endregion Properties (3)
+
+        #region Methods (6)
+
+        protected void AppendChatMessage(INewChatMessage msg)
+        {
+            var newLogLine = new StringBuilder();
+            newLogLine.AppendFormat("[{0:yyyy-mm-dd HH:mm:ss zzz}] '{1}': {2}",
+                                    msg.Time,
+                                    msg.From,
+                                    msg.Message).AppendLine();
+
+            TextBox_ChatLog.AppendText(newLogLine.ToString());
+        }
+
+        [ReceiveMessage(MessageThreadOption.Background)]
+        protected void ReceiveChatMessage(IMessageContext<INewChatMessage> msg)
+        {
+            InvokeThreadSafe((cf) => AppendChatMessage(msg.Message));
+        }
+
+        protected void InvokeThreadSafe(Action<ChatForm> action)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<Action<ChatForm>>(InvokeThreadSafe),
+                       action);
+                return;
+            }
+
+            action(this);
+        }
+
+        public void UpdateContext(IMessageHandlerContext ctx)
+        {
+            MessageHandlerContext = ctx;
+        }
+
+        #endregion Methods (6)
     }
 }

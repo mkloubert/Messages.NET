@@ -27,60 +27,84 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Messages;
 using System;
 
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Extensions
 {
-    /// <summary>
-    /// Describes the configuration for an <see cref="IMessageHandler" /> object.
-    /// </summary>
-    public interface IMessageHandlerConfiguration
+    // RegisterFor()
+    static partial class MJKMessageExtensionMethods
     {
-        #region Properties (1)
+        #region Methods (2)
 
         /// <summary>
-        /// Gets or sets if the underlying distributor owns the handler or not.
+        /// Registers a message type.
         /// </summary>
-        bool OwnsHandler { get; set; }
-
-        #endregion Properties (1)
-
-        #region Methods (4)
-
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForReceive<TMsg>();
-
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
+        /// <typeparam name="TMsg">Type of the message.</typeparam>
+        /// <param name="cfg">The handler configuration.</param>
+        /// <param name="directions">The directions.</param>
+        /// <returns>The instance of <paramref name="cfg" />.</returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
+        /// <paramref name="cfg" /> is <see langword="null" />.
         /// </exception>
-        IMessageHandlerConfiguration RegisterForReceive(Type msgType);
+        public static IMessageHandlerConfiguration RegisterFor<TMsg>(this IMessageHandlerConfiguration cfg,
+                                                                     MessageDirections directions = MessageDirections.Receive | MessageDirections.Send)
+        {
+            if (cfg == null)
+            {
+                throw new ArgumentNullException("cfg");
+            }
+
+            if (directions.HasFlag(MessageDirections.Receive))
+            {
+                cfg.RegisterForReceive<TMsg>();
+            }
+
+            if (directions.HasFlag(MessageDirections.Send))
+            {
+                cfg.RegisterForSend<TMsg>();
+            }
+
+            return cfg;
+        }
 
         /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
+        /// Registers a message type.
         /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForSend<TMsg>();
-
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
+        /// <param name="cfg">The handler configuration.</param>
+        /// <param name="msgType">Type of the message.</param>
+        /// <param name="directions">The directions.</param>
+        /// <returns>The instance of <paramref name="cfg" />.</returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
+        /// <paramref name="cfg" /> and/or <paramref name="msgType" /> is <see langword="null" />.
         /// </exception>
-        IMessageHandlerConfiguration RegisterForSend(Type msgType);
+        public static IMessageHandlerConfiguration RegisterFor(this IMessageHandlerConfiguration cfg,
+                                                               Type msgType,
+                                                               MessageDirections directions = MessageDirections.Receive | MessageDirections.Send)
+        {
+            if (cfg == null)
+            {
+                throw new ArgumentNullException("cfg");
+            }
 
-        #endregion Methods (4)
+            if (msgType == null)
+            {
+                throw new ArgumentNullException("msgType");
+            }
+
+            if (directions.HasFlag(MessageDirections.Receive))
+            {
+                cfg.RegisterForReceive(msgType: msgType);
+            }
+
+            if (directions.HasFlag(MessageDirections.Send))
+            {
+                cfg.RegisterForSend(msgType: msgType);
+            }
+
+            return cfg;
+        }
+
+        #endregion Methods (2)
     }
 }

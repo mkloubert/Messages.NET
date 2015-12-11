@@ -28,59 +28,25 @@
  **********************************************************************************************************************/
 
 using System;
+using System.Windows.Forms;
 
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Messages.ChatExample
 {
-    /// <summary>
-    /// Describes the configuration for an <see cref="IMessageHandler" /> object.
-    /// </summary>
-    public interface IMessageHandlerConfiguration
+    internal static class Program
     {
-        #region Properties (1)
+        #region Methods (1)
 
         /// <summary>
-        /// Gets or sets if the underlying distributor owns the handler or not.
+        /// Der Haupteinstiegspunkt für die Anwendung.
         /// </summary>
-        bool OwnsHandler { get; set; }
+        [STAThread]
+        private static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm());
+        }
 
-        #endregion Properties (1)
-
-        #region Methods (4)
-
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForReceive<TMsg>();
-
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForReceive(Type msgType);
-
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForSend<TMsg>();
-
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForSend(Type msgType);
-
-        #endregion Methods (4)
+        #endregion Methods (1)
     }
 }

@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
 
 namespace MarcelJoachimKloubert.Messages
 {
@@ -81,7 +82,21 @@ namespace MarcelJoachimKloubert.Messages
 
         #endregion Constructors (2)
 
-        #region Properties (4)
+        #region Events (2)
+
+        /// <summary>
+        /// Is invoked when a message log entry has been received.
+        /// </summary>
+        public event EventHandler<MessageLogEventArgs> MessageLogReceived;
+
+        /// <summary>
+        /// Is invoked when a log entry for a new message has been received.
+        /// </summary>
+        public event EventHandler<NewMessageLogEventArgs> NewMessageLogReceived;
+
+        #endregion Events (2)
+
+        #region Properties (5)
 
         /// <summary>
         /// Gets if the handler has been disposed or not.
@@ -89,9 +104,12 @@ namespace MarcelJoachimKloubert.Messages
         public virtual bool IsDisposed { get; protected set; }
 
         /// <summary>
-        /// Gets if the distributor has been initialized or not.
+        /// Returns the current time.
         /// </summary>
-        public virtual bool IsInitialized { get; protected set; }
+        public DateTimeOffset Now
+        {
+            get { return (TimeProvider ?? GetNow)(); }
+        }
 
         /// <summary>
         /// Gets the object for thread safe operations.
@@ -103,9 +121,14 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         public virtual object Tag { get; set; }
 
-        #endregion Properties (4)
+        /// <summary>
+        /// Gets or sets the function that provides the current time.
+        /// </summary>
+        public Func<DateTimeOffset> TimeProvider { get; set; }
 
-        #region Methods (9)
+        #endregion Properties (5)
+
+        #region Methods (15)
 
         /// <inheriteddoc />
         public void Dispose()
@@ -163,6 +186,15 @@ namespace MarcelJoachimKloubert.Messages
             }
         }
 
+        /// <summary>
+        /// The default logic for providing the current time.
+        /// </summary>
+        /// <returns>The current time.</returns>
+        protected virtual DateTimeOffset GetNow()
+        {
+            return DateTimeOffset.Now;
+        }
+
         private static MethodInfo GetSubscribeMethod(IMessageHandlerContext ctx)
         {
             var ctxType = ctx.GetType();
@@ -192,91 +224,75 @@ namespace MarcelJoachimKloubert.Messages
                                   return false;
                               }
 
-                              var genericMessageCtxType = typeof(IMessageContext<>);
-                              var messageCtxType = genericMessageCtxType.MakeGenericType(genericParams[0]);
+                              var messageCtxType = typeof(IMessageContext<>).MakeGenericType(genericParams[0]);
+                              var methodActionType = typeof(Action<>).MakeGenericType(messageCtxType);
 
-                              var genericMethodActionType = typeof(Action<>);
-                              var methodActionType = genericMethodActionType.MakeGenericType(messageCtxType);
-
-                              return methodActionType.Equals(@params[0].ParameterType);
+                              return methodActionType == @params[0].ParameterType;
                           });
         }
 
         /// <summary>
-        /// Initialized the object.
+        /// Raises the <see cref="MessageDistributor.MessageLogReceived" />.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Object has already been initialized.</exception>
-        /// <exception cref="ObjectDisposedException">Object has already been disposed.</exception>
-        public void Initialize()
+        /// <param name="handler">The message handler.</param>
+        /// <param name="log">The log entry.</param>
+        /// <returns>Event has been raised or not.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="handler" /> and/or <paramref name="log" /> is <see langword="null" />.
+        /// </exception>
+        protected bool RaiseMessageLogReceived(IMessageHandler handler, IMessageLogEntry log)
         {
-            lock (SyncRoot)
+            if (handler == null)
             {
-                ThrowIfDisposed();
-
-                if (IsInitialized)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                using (var e = _HANDLERS.GetEnumerator())
-                {
-                    while (e.MoveNext())
-                    {
-                        var ctx = e.Current;
-
-                        var handlerType = ctx.Handler.GetType();
-
-                        var flags = BindingFlags.Instance | BindingFlags.Static |
-                                    BindingFlags.Public | BindingFlags.NonPublic;
-
-                        var members = Enumerable.Empty<MemberInfo>()
-                                                .Concat(handlerType.GetFields(flags))
-                                                .Concat(handlerType.GetProperties(flags))
-                                                .Concat(handlerType.GetMethods(flags));
-
-                        using (var eMembers = members.GetEnumerator())
-                        {
-                            while (eMembers.MoveNext())
-                            {
-                                var member = eMembers.Current;
-
-                                // automatically subscribe for receiving messages
-                                // of a specific type
-                                var receivceMsgAttribs = member.GetCustomAttributes(typeof(ReceiveMessageAttribute), true)
-                                                               .Cast<ReceiveMessageAttribute>();
-                                {
-                                    using (var eAttribs = receivceMsgAttribs.GetEnumerator())
-                                    {
-                                        while (eAttribs.MoveNext())
-                                        {
-                                            var attrib = eAttribs.Current;
-                                            var msgType = attrib.MessageType;
-
-                                            if (member is MethodInfo)
-                                            {
-                                                SubscribeMethod(ctx, (MethodInfo)member, msgType);
-                                            }
-                                            else if (member is PropertyInfo)
-                                            {
-                                                SubscribeProperty(ctx, (PropertyInfo)member, msgType);
-                                            }
-                                            else if (member is FieldInfo)
-                                            {
-                                                SubscribeField(ctx, (FieldInfo)member, msgType);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        ctx.Handler
-                           .UpdateContext(ctx);
-                    }
-                }
-
-                IsInitialized = true;
+                throw new ArgumentNullException("handler");
             }
+
+            if (log == null)
+            {
+                throw new ArgumentNullException("log");
+            }
+
+            var eventHandler = MessageLogReceived;
+            if (eventHandler != null)
+            {
+                eventHandler(this, new MessageLogEventArgs(handler: handler,
+                                                           log: log));
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Raises the <see cref="MessageDistributor.NewMessageLogReceived" />.
+        /// </summary>
+        /// <param name="handler">The message handler.</param>
+        /// <param name="log">The log entry.</param>
+        /// <returns>Event has been raised or not.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="handler" /> and/or <paramref name="log" /> is <see langword="null" />.
+        /// </exception>
+        protected bool RaiseNewMessageLogReceived(IMessageHandler handler, INewMessageLogEntry log)
+        {
+            if (handler == null)
+            {
+                throw new ArgumentNullException("handler");
+            }
+
+            if (log == null)
+            {
+                throw new ArgumentNullException("log");
+            }
+
+            var eventHandler = NewMessageLogReceived;
+            if (eventHandler != null)
+            {
+                eventHandler(this, new NewMessageLogEventArgs(handler: handler,
+                                                              log: log));
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -307,16 +323,130 @@ namespace MarcelJoachimKloubert.Messages
                 var ctx = new MessageHandlerContext
                 {
                     Config = result,
+                    Handler = handler,
                     ModuleBuilder = _MODULE_BUILDER,
                 };
+
+                var handlerType = handler.GetType();
+
+                var flags = BindingFlags.Instance | BindingFlags.Static |
+                            BindingFlags.Public | BindingFlags.NonPublic;
+
+                var members = Enumerable.Empty<MemberInfo>()
+                                        .Concat(handlerType.GetFields(flags))
+                                        .Concat(handlerType.GetProperties(flags))
+                                        .Concat(handlerType.GetMethods(flags));
+
+                using (var eMembers = members.GetEnumerator())
+                {
+                    while (eMembers.MoveNext())
+                    {
+                        var member = eMembers.Current;
+
+                        // automatically subscribe for receiving messages
+                        // of a specific type
+                        var receivceMsgAttribs = member.GetCustomAttributes(typeof(ReceiveMessageAttribute), true)
+                                                       .Cast<ReceiveMessageAttribute>();
+                        {
+                            using (var eAttribs = receivceMsgAttribs.GetEnumerator())
+                            {
+                                while (eAttribs.MoveNext())
+                                {
+                                    var attrib = eAttribs.Current;
+
+                                    if (member is MethodInfo)
+                                    {
+                                        SubscribeMethod(ctx, (MethodInfo)member, attrib);
+                                    }
+                                    else if (member is PropertyInfo)
+                                    {
+                                        SubscribeProperty(ctx, (PropertyInfo)member, attrib);
+                                    }
+                                    else if (member is FieldInfo)
+                                    {
+                                        SubscribeField(ctx, (FieldInfo)member, attrib);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                handler.UpdateContext(ctx);
 
                 _HANDLERS.Add(ctx);
                 return result;
             }
         }
 
-        private static void SubscribeField(IMessageHandlerContext ctx, FieldInfo field, Type msgType)
+        /// <summary>
+        /// Registers a list of handlers that should use the same configuration.
+        /// </summary>
+        /// <param name="handlers">The handlers to register.</param>
+        /// <returns>The configuration object.</returns>
+        /// <exception cref="ObjectDisposedException">Object has already been disposed.</exception>
+        public IMessageHandlerConfiguration RegisterListOfHandlers(params IMessageHandler[] handlers)
         {
+            return RegisterListOfHandlers(ownsHandlers: false,
+                                    handlers: handlers);
+        }
+
+        /// <summary>
+        /// Registers a list of handlers that should use the same configuration.
+        /// </summary>
+        /// <param name="ownsHandlers">Own handlers or not.</param>
+        /// <param name="handlers">The handlers to register.</param>
+        /// <returns>The configuration object.</returns>
+        /// <exception cref="ObjectDisposedException">Object has already been disposed.</exception>
+        public IMessageHandlerConfiguration RegisterListOfHandlers(bool ownsHandlers, params IMessageHandler[] handlers)
+        {
+            return RegisterListOfHandlers(handlerList: handlers ?? new IMessageHandler[] { null },
+                                    ownsHandlers: ownsHandlers);
+        }
+
+        /// <summary>
+        /// Registers a list of handlers that should use the same configuration.
+        /// </summary>
+        /// <param name="handlerList">The handlers to register.</param>
+        /// <param name="ownsHandlers">Own handlers or not.</param>
+        /// <returns>The configuration object.</returns>
+        /// <exception cref="ObjectDisposedException">Object has already been disposed.</exception>
+        public IMessageHandlerConfiguration RegisterListOfHandlers(IEnumerable<IMessageHandler> handlerList, bool ownsHandlers = false)
+        {
+            ThrowIfDisposed();
+
+            var result = new AggregateMessageHandlerConfiguration();
+
+            var cfgList = new List<IMessageHandlerConfiguration>();
+
+            if (handlerList != null)
+            {
+                using (var e = handlerList.GetEnumerator())
+                {
+                    while (e.MoveNext())
+                    {
+                        var handler = e.Current;
+                        if (handler == null)
+                        {
+                            continue;
+                        }
+
+                        var cfg = RegisterHandler(handler: handler);
+                        cfgList.Add(cfg);
+                    }
+                }
+            }
+
+            result.Configurations = cfgList;
+            result.OwnsHandler = ownsHandlers;
+
+            return result;
+        }
+
+        private static void SubscribeField(IMessageHandlerContext ctx, FieldInfo field, ReceiveMessageAttribute attrib)
+        {
+            var msgType = attrib.MessageType;
+
             if (msgType == null)
             {
                 var fieldType = field.FieldType;
@@ -324,9 +454,7 @@ namespace MarcelJoachimKloubert.Messages
                 msgType = fieldType.GetGenericArguments()[0];
             }
 
-            var genericSubscribeMethod = GetSubscribeMethod(ctx);
-
-            var sm = genericSubscribeMethod.MakeGenericMethod(msgType);
+            var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
 
             var action = new Action<object>((m) =>
                 {
@@ -335,11 +463,13 @@ namespace MarcelJoachimKloubert.Messages
                 });
 
             sm.Invoke(obj: ctx,
-                      parameters: new object[] { action });
+                      parameters: new object[] { WrapSubscribeAction(action, attrib.ThreadOption) });
         }
 
-        private static void SubscribeMethod(IMessageHandlerContext ctx, MethodInfo method, Type msgType)
+        private static void SubscribeMethod(IMessageHandlerContext ctx, MethodInfo method, ReceiveMessageAttribute attrib)
         {
+            var msgType = attrib.MessageType;
+
             if (msgType == null)
             {
                 var param = method.GetParameters()[0];
@@ -348,9 +478,7 @@ namespace MarcelJoachimKloubert.Messages
                 msgType = paramType.GetGenericArguments()[0];
             }
 
-            var genericSubscribeMethod = GetSubscribeMethod(ctx);
-
-            var sm = genericSubscribeMethod.MakeGenericMethod(msgType);
+            var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
 
             var action = new Action<object>((m) =>
                 {
@@ -359,11 +487,13 @@ namespace MarcelJoachimKloubert.Messages
                 });
 
             sm.Invoke(obj: ctx,
-                      parameters: new object[] { action });
+                      parameters: new object[] { WrapSubscribeAction(action, attrib.ThreadOption) });
         }
 
-        private static void SubscribeProperty(IMessageHandlerContext ctx, PropertyInfo property, Type msgType)
+        private static void SubscribeProperty(IMessageHandlerContext ctx, PropertyInfo property, ReceiveMessageAttribute attrib)
         {
+            var msgType = attrib.MessageType;
+
             if (msgType == null)
             {
                 var propertyType = property.PropertyType;
@@ -371,9 +501,7 @@ namespace MarcelJoachimKloubert.Messages
                 msgType = propertyType.GetGenericArguments()[0];
             }
 
-            var genericSubscribeMethod = GetSubscribeMethod(ctx);
-
-            var sm = genericSubscribeMethod.MakeGenericMethod(msgType);
+            var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
 
             var action = new Action<object>((m) =>
                 {
@@ -382,7 +510,7 @@ namespace MarcelJoachimKloubert.Messages
                 });
 
             sm.Invoke(obj: ctx,
-                      parameters: new object[] { action });
+                      parameters: new object[] { WrapSubscribeAction(action, attrib.ThreadOption) });
         }
 
         /// <summary>
@@ -399,6 +527,20 @@ namespace MarcelJoachimKloubert.Messages
             }
         }
 
-        #endregion Methods (9)
+        private static Action<object> WrapSubscribeAction(Action<object> action, MessageThreadOption threadOption)
+        {
+            if (threadOption == MessageThreadOption.Background)
+            {
+                return (m) =>
+                {
+                    Task.Factory
+                        .StartNew(action, state: m);
+                };
+            }
+
+            return action;
+        }
+
+        #endregion Methods (15)
     }
 }

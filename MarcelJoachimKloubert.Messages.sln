@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarcelJoachimKloubert.Messa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarcelJoachimKloubert.Messages.Tests", "MarcelJoachimKloubert.Messages.Tests\MarcelJoachimKloubert.Messages.Tests.csproj", "{8B9CAB87-F78A-41AB-B4A4-4EA5B567BC7C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarcelJoachimKloubert.Messages.ChatExample", "MarcelJoachimKloubert.Messages.ChatExample\MarcelJoachimKloubert.Messages.ChatExample.csproj", "{7EAB4447-EE60-48A9-9E0C-A8273759C6F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{8B9CAB87-F78A-41AB-B4A4-4EA5B567BC7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B9CAB87-F78A-41AB-B4A4-4EA5B567BC7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B9CAB87-F78A-41AB-B4A4-4EA5B567BC7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EAB4447-EE60-48A9-9E0C-A8273759C6F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EAB4447-EE60-48A9-9E0C-A8273759C6F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EAB4447-EE60-48A9-9E0C-A8273759C6F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EAB4447-EE60-48A9-9E0C-A8273759C6F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -27,126 +27,99 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Extensions
 {
-    partial class MessageDistributor
+    // RegisterAssembly()
+    static partial class MJKMessageExtensionMethods
     {
-        internal class NewMessageContext<TMsg> : MessageContext<TMsg>, INewMessageContext<TMsg>
+        #region Methods (2)
+
+        /// <summary>
+        /// Registers the types of the current assembly.
+        /// </summary>
+        /// <typeparam name="TCfg">Type of the handler configuration.</typeparam>
+        /// <param name="cfg">The handler configuration.</param>
+        /// <param name="directions">The directions.</param>
+        /// <param name="allTypes">
+        /// Register all types (<see langword="true" />) or the types that are marked with
+        /// <see cref="MessageContractAttribute" /> only (<see langword="false" />).
+        /// </param>
+        /// <returns>The instance of <paramref name="cfg" />.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="cfg" /> is <see langword="null" />.
+        /// </exception>
+        public static TCfg RegisterAssembly<TCfg>(this TCfg cfg,
+                                                  MessageDirections directions = MessageDirections.Receive | MessageDirections.Send,
+                                                  bool allTypes = false)
+            where TCfg : IMessageHandlerConfiguration
         {
-            #region Methods (3)
+            return RegisterAssembly<TCfg>(cfg: cfg,
+                                          asm: Assembly.GetCallingAssembly(),
+                                          directions: directions, allTypes: allTypes);
+        }
 
-            internal MessageContext<TMsg> CloneForRecipient()
+        /// <summary>
+        /// Registers the types of an assembly.
+        /// </summary>
+        /// <typeparam name="TCfg">Type of the handler configuration.</typeparam>
+        /// <param name="cfg">The handler configuration.</param>
+        /// <param name="asm">The assembly.</param>
+        /// <param name="directions">The directions.</param>
+        /// <param name="allTypes">
+        /// Register all types (<see langword="true" />) or the types that are marked with
+        /// <see cref="MessageContractAttribute" /> only (<see langword="false" />).
+        /// </param>
+        /// <returns>The instance of <paramref name="cfg" />.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="cfg" /> is <see langword="null" />.
+        /// </exception>
+        public static TCfg RegisterAssembly<TCfg>(this TCfg cfg, Assembly asm,
+                                                  MessageDirections directions = MessageDirections.Receive | MessageDirections.Send,
+                                                  bool allTypes = false)
+            where TCfg : IMessageHandlerConfiguration
+        {
+            if (cfg == null)
             {
-                var msg = Message;
-                if (msg is ICloneable)
-                {
-                    msg = (TMsg)((ICloneable)msg).Clone();
-                }
-
-                return new MessageContext<TMsg>()
-                {
-                    Config = Config,
-                    CreationTime = CreationTime,
-                    Id = Id,
-                    Message = msg,
-                };
+                throw new ArgumentNullException("cfg");
             }
 
-            public override bool Log(object msg,
-                                     MessageLogCategory category = MessageLogCategory.Info, MessageLogPriority prio = MessageLogPriority.None,
-                                     string tag = null)
+            if (asm != null)
             {
-                try
+                IEnumerable<Type> typesToRegister = asm.GetTypes();
+                if (!allTypes)
                 {
-                    var now = Distributor.Now;
+                    typesToRegister = typesToRegister.Where(x => x.GetCustomAttributes(typeof(MessageContractAttribute), false)
+                                                                  .Any());
+                }
 
-                    var log = new NewMessageLogEntry<TMsg>()
+                using (var e = typesToRegister.GetEnumerator())
+                {
+                    while (e.MoveNext())
                     {
-                        Category = category,
-                        Handler = Config.Handler,
-                        Id = Guid.NewGuid(),
-                        LogMessage = now,
-                        Message = this,
-                        Priority = prio,
-                        Tag = ParseLogTag(tag),
-                        Time = now,
-                    };
+                        var msgType = e.Current;
 
-                    Distributor.RaiseNewMessageLogReceived(Config.Handler, log);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            public void Send()
-            {
-                var now = Distributor.Now;
-
-                if (SendTime.HasValue)
-                {
-                    throw new InvalidOperationException("Cannot resend message!");
-                }
-
-                lock (Config.SyncRoot)
-                {
-                    if (!Config.SEND_TYPES.Contains(typeof(TMsg)))
-                    {
-                        // not configured to send that message type
-                        return;
-                    }
-                }
-
-                var otherHandlers = new List<MessageHandlerContext>();
-                lock (Config.Distributor.SyncRoot)
-                {
-                    otherHandlers.AddRange(Config.Distributor
-                                                 ._HANDLERS
-                                                 .Where(x => !x.Handler.Equals(Config.Handler)));
-                }
-
-                var occuredExceptions = new List<Exception>();
-
-                try
-                {
-                    using (var e = otherHandlers.GetEnumerator())
-                    {
-                        while (e.MoveNext())
+                        if (directions.HasFlag(MessageDirections.Receive))
                         {
-                            try
-                            {
-                                var ctx = e.Current;
+                            cfg.RegisterForReceive(msgType: msgType);
+                        }
 
-                                var msg = CloneForRecipient();
-                                msg.SendTime = now;
-
-                                ctx.Receive(msg);
-                            }
-                            catch (Exception ex)
-                            {
-                                occuredExceptions.Add(ex);
-                            }
+                        if (directions.HasFlag(MessageDirections.Send))
+                        {
+                            cfg.RegisterForSend(msgType: msgType);
                         }
                     }
                 }
-                finally
-                {
-                    SendTime = now;
-                }
-
-                if (occuredExceptions.Count > 0)
-                {
-                    throw new AggregateException(occuredExceptions);
-                }
             }
 
-            #endregion Methods (3)
+            return cfg;
         }
+
+        #endregion Methods (2)
     }
 }

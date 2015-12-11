@@ -36,13 +36,14 @@ namespace MarcelJoachimKloubert.Messages
     {
         internal class MessageHandlerConfiguration : IMessageHandlerConfiguration
         {
-            #region Fields (3)
+            #region Fields (4)
 
             public readonly ICollection<Type> RECEIVE_TYPES;
             public readonly ICollection<Type> SEND_TYPES;
             internal MessageDistributor Distributor;
+            internal IMessageHandler Handler;
 
-            #endregion Fields (3)
+            #endregion Fields (4)
 
             #region Constructors (1)
 
@@ -56,15 +57,13 @@ namespace MarcelJoachimKloubert.Messages
 
             #endregion Constructors (1)
 
-            #region Properties (3)
-
-            public IMessageHandler Handler { get; internal set; }
+            #region Properties (2)
 
             public bool OwnsHandler { get; set; }
 
             internal object SyncRoot { get; private set; }
 
-            #endregion Properties (3)
+            #endregion Properties (2)
 
             #region Methods (4)
 

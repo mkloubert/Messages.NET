@@ -58,24 +58,29 @@ namespace MarcelJoachimKloubert.Messages
 
             #endregion Contructors (1)
 
-            #region Properties (2)
+            #region Properties (3)
 
-            public IMessageHandler Handler
+            public MessageDistributor Distributor
             {
-                get { return Config.Handler; }
+                get { return Config.Distributor; }
             }
+
+            public IMessageHandler Handler { get; internal set; }
 
             internal object SyncRoot { get; private set; }
 
-            #endregion Properties (2)
+            #endregion Properties (3)
 
             #region Methods (5)
 
             public INewMessageContext<TMsg> CreateMessage<TMsg>()
             {
+                var now = Distributor.Now;
+
                 var result = new NewMessageContext<TMsg>()
                 {
                     Config = Config,
+                    CreationTime = now,
                     Id = Guid.NewGuid(),
                     Message = (TMsg)Activator.CreateInstance(GetMessageType<TMsg>()),
                 };
@@ -95,7 +100,7 @@ namespace MarcelJoachimKloubert.Messages
                                               .InstanceType;
                 }
 
-                var baseType = typeof(object);
+                var baseType = typeof(MessageBase);
 
                 var typeBuilder = ModuleBuilder.DefineType(string.Format("MJKImplOf_{0}_{1:N}_{2}_Proxy",
                                                                          interfaceType.Name,
@@ -241,6 +246,19 @@ namespace MarcelJoachimKloubert.Messages
                     return null;
                 }
 
+                ICollection<Delegate> subscriberActions;
+                lock (SyncRoot)
+                {
+                    var msgType = typeof(TMsg);
+
+                    SUBSCRIPTIONS.TryGetValue(msgType, out subscriberActions);
+                }
+
+                if (subscriberActions == null)
+                {
+                    return false;
+                }
+
                 lock (Config.SyncRoot)
                 {
                     if (Config.Handler.IsDisposed)
@@ -255,22 +273,9 @@ namespace MarcelJoachimKloubert.Messages
                     }
                 }
 
-                ICollection<Delegate> handlers;
-                lock (SyncRoot)
-                {
-                    var msgType = typeof(TMsg);
-
-                    SUBSCRIPTIONS.TryGetValue(msgType, out handlers);
-                }
-
-                if (handlers == null)
-                {
-                    return false;
-                }
-
                 var occuredExceptions = new List<Exception>();
 
-                using (var e = handlers.GetEnumerator())
+                using (var e = subscriberActions.GetEnumerator())
                 {
                     while (e.MoveNext())
                     {

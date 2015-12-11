@@ -27,6 +27,8 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using System;
+
 namespace MarcelJoachimKloubert.Messages
 {
     /// <summary>
@@ -35,11 +37,21 @@ namespace MarcelJoachimKloubert.Messages
     /// <typeparam name="TMsg">Type of the message.</typeparam>
     public interface INewMessageContext<out TMsg> : IMessageContext<TMsg>
     {
+        #region Properties (1)
+
+        /// <inheriteddoc />
+        new DateTimeOffset? SendTime { get; }
+
+        #endregion Properties (1)
+
         #region Methods (1)
 
         /// <summary>
         /// Sends the message.
         /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Cannot resend message.
+        /// </exception>
         void Send();
 
         #endregion Methods (1)

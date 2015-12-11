@@ -27,60 +27,66 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Extensions;
+using MarcelJoachimKloubert.Messages.ChatExample.Contracts;
 using System;
+using System.Windows.Forms;
 
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Messages.ChatExample
 {
-    /// <summary>
-    /// Describes the configuration for an <see cref="IMessageHandler" /> object.
-    /// </summary>
-    public interface IMessageHandlerConfiguration
+    public partial class MainForm : Form
     {
+        #region Constructors (1)
+
+        public MainForm()
+        {
+            InitializeComponent();
+
+            MessageDistributor = new MessageDistributor();
+        }
+
+        #endregion Constructors (1)
+
+        #region Events (3)
+
+        private void Button_CreateWindow_Click(object sender, EventArgs e)
+        {
+            CreateChatWindow();
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            using (MessageDistributor)
+            {
+                MessageDistributor = null;
+            }
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            CreateChatWindow();
+            CreateChatWindow();
+        }
+
+        #endregion Events (3)
+
         #region Properties (1)
 
-        /// <summary>
-        /// Gets or sets if the underlying distributor owns the handler or not.
-        /// </summary>
-        bool OwnsHandler { get; set; }
+        public MessageDistributor MessageDistributor { get; private set; }
 
         #endregion Properties (1)
 
-        #region Methods (4)
+        #region Methods (1)
 
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForReceive<TMsg>();
+        protected void CreateChatWindow()
+        {
+            var newChatForm = new ChatForm();
+            newChatForm.Show(this);
 
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForReceive(Type msgType);
+            newChatForm.RegisterTo(MessageDistributor)
+                       .RegisterFor<INewChatMessage>();
+        }
 
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForSend<TMsg>();
-
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForSend(Type msgType);
-
-        #endregion Methods (4)
+        #endregion Methods (1)
     }
 }

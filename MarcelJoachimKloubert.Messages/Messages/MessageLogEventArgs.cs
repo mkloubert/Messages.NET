@@ -32,55 +32,37 @@ using System;
 namespace MarcelJoachimKloubert.Messages
 {
     /// <summary>
-    /// Describes the configuration for an <see cref="IMessageHandler" /> object.
+    /// Event arguments for a log message entry of an <see cref="IMessageHandler" />.
     /// </summary>
-    public interface IMessageHandlerConfiguration
+    public class MessageLogEventArgs : EventArgs
     {
-        #region Properties (1)
+        #region Constructors (1)
 
         /// <summary>
-        /// Gets or sets if the underlying distributor owns the handler or not.
+        /// Initializes a new instance of the <see cref="MessageLogEventArgs" /> class.
         /// </summary>
-        bool OwnsHandler { get; set; }
+        /// <param name="handler">The value for the <see cref="MessageLogEventArgs.Handler" /> property.</param>
+        /// <param name="log">The value for the <see cref="MessageLogEventArgs.Log" /> property.</param>
+        public MessageLogEventArgs(IMessageHandler handler, IMessageLogEntry log)
+        {
+            Handler = handler;
+            Log = log;
+        }
 
-        #endregion Properties (1)
+        #endregion Constructors (1)
 
-        #region Methods (4)
+        #region Properties (2)
 
         /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
+        /// Gets the underlying handler.
         /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForReceive<TMsg>();
+        public IMessageHandler Handler { get; private set; }
 
         /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
+        /// Gets the underlying log entry.
         /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForReceive(Type msgType);
+        public IMessageLogEntry Log { get; private set; }
 
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForSend<TMsg>();
-
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForSend(Type msgType);
-
-        #endregion Methods (4)
+        #endregion Properties (2)
     }
 }

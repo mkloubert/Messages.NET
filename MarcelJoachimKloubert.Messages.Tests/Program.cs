@@ -102,8 +102,6 @@ namespace MarcelJoachimKloubert.Messages.Tests
                 var cfg2 = distributor.RegisterHandler(handler2);
                 cfg2.RegisterForReceive<ITestMessage>();
 
-                distributor.Initialize();
-
                 handler1.SendTestMessage();
             }
             catch

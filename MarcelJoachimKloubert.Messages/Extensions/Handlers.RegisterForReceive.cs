@@ -27,60 +27,66 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Messages;
 using System;
+using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Extensions
 {
-    /// <summary>
-    /// Describes the configuration for an <see cref="IMessageHandler" /> object.
-    /// </summary>
-    public interface IMessageHandlerConfiguration
+    // RegisterForReceive()
+    static partial class MJKMessageExtensionMethods
     {
-        #region Properties (1)
+        #region Methods (2)
 
         /// <summary>
-        /// Gets or sets if the underlying distributor owns the handler or not.
+        /// Registers the underlying handler for receiving messages of specific types.
         /// </summary>
-        bool OwnsHandler { get; set; }
-
-        #endregion Properties (1)
-
-        #region Methods (4)
-
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForReceive<TMsg>();
-
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
+        /// <param name="cfg">The handler configuration.</param>
+        /// <param name="msgTypes">The list of message types.</param>
+        /// <returns>The instance of <paramref name="cfg" />.</returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
+        /// <paramref name="cfg" /> is <see langword="null" /> and/or at least
+        /// one item in <paramref name="msgTypes" />.
         /// </exception>
-        IMessageHandlerConfiguration RegisterForReceive(Type msgType);
+        public static TCfg RegisterForReceive<TCfg>(this TCfg cfg, params Type[] msgTypes)
+            where TCfg : IMessageHandlerConfiguration
+        {
+            return RegisterForReceive<TCfg>(cfg: cfg,
+                                            msgTypeList: msgTypes ?? new Type[] { null });
+        }
 
         /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
+        /// Registers the underlying handler for receiving messages of specific types.
         /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForSend<TMsg>();
-
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
+        /// <param name="cfg">The handler configuration.</param>
+        /// <param name="msgTypeList">The list of message types.</param>
+        /// <returns>The instance of <paramref name="cfg" />.</returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
+        /// <paramref name="cfg" /> is <see langword="null" /> and/or at least
+        /// one item in <paramref name="msgTypeList" />.
         /// </exception>
-        IMessageHandlerConfiguration RegisterForSend(Type msgType);
+        public static TCfg RegisterForReceive<TCfg>(this TCfg cfg, IEnumerable<Type> msgTypeList)
+            where TCfg : IMessageHandlerConfiguration
+        {
+            if (cfg == null)
+            {
+                throw new ArgumentNullException("cfg");
+            }
 
-        #endregion Methods (4)
+            if (msgTypeList != null)
+            {
+                using (var e = msgTypeList.GetEnumerator())
+                {
+                    while (e.MoveNext())
+                    {
+                        cfg.RegisterForReceive(msgType: e.Current);
+                    }
+                }
+            }
+
+            return cfg;
+        }
+
+        #endregion Methods (2)
     }
 }

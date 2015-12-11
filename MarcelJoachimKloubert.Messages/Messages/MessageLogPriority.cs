@@ -27,60 +27,41 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using System;
-
 namespace MarcelJoachimKloubert.Messages
 {
     /// <summary>
-    /// Describes the configuration for an <see cref="IMessageHandler" /> object.
+    /// List of log priorities.
     /// </summary>
-    public interface IMessageHandlerConfiguration
+    public enum MessageLogPriority
     {
-        #region Properties (1)
+        /// <summary>
+        /// None
+        /// </summary>
+        None = int.MaxValue,
 
         /// <summary>
-        /// Gets or sets if the underlying distributor owns the handler or not.
+        /// Very high
         /// </summary>
-        bool OwnsHandler { get; set; }
-
-        #endregion Properties (1)
-
-        #region Methods (4)
+        VeryHigh = 1,
 
         /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
+        /// High
         /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForReceive<TMsg>();
+        High = 2,
 
         /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
+        /// Medium
         /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForReceive(Type msgType);
+        Medium = 3,
 
         /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
+        /// Low
         /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForSend<TMsg>();
+        Low = 4,
 
         /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
+        /// Very low
         /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForSend(Type msgType);
-
-        #endregion Methods (4)
+        VeryLow = 5,
     }
 }

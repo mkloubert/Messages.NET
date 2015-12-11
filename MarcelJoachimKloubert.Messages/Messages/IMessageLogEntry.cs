@@ -32,55 +32,57 @@ using System;
 namespace MarcelJoachimKloubert.Messages
 {
     /// <summary>
-    /// Describes the configuration for an <see cref="IMessageHandler" /> object.
+    /// Describes a message log entry.
     /// </summary>
-    public interface IMessageHandlerConfiguration
+    public interface IMessageLogEntry
     {
-        #region Properties (1)
+        #region Properties (9)
 
         /// <summary>
-        /// Gets or sets if the underlying distributor owns the handler or not.
+        /// Gets the category.
         /// </summary>
-        bool OwnsHandler { get; set; }
-
-        #endregion Properties (1)
-
-        #region Methods (4)
+        MessageLogCategory Category { get; }
 
         /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
+        /// Gets the handler.
         /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForReceive<TMsg>();
+        IMessageHandler Handler { get; }
 
         /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
+        /// Gets the ID of the message.
         /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForReceive(Type msgType);
+        Guid Id { get; }
 
         /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
+        /// Gets the log message.
         /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForSend<TMsg>();
+        object LogMessage { get; }
 
         /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
+        /// Gets the underlying message.
         /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerConfiguration RegisterForSend(Type msgType);
+        IMessageContext<object> Message { get; }
 
-        #endregion Methods (4)
+        /// <summary>
+        /// Gets the message type.
+        /// </summary>
+        Type MessageType { get; }
+
+        /// <summary>
+        /// Gets the priority.
+        /// </summary>
+        MessageLogPriority Priority { get; }
+
+        /// <summary>
+        /// Gets the tag.
+        /// </summary>
+        string Tag { get; }
+
+        /// <summary>
+        /// Gets the time.
+        /// </summary>
+        DateTimeOffset Time { get; }
+
+        #endregion Properties (9)
     }
 }

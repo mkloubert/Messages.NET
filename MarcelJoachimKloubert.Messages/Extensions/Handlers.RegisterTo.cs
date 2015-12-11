@@ -27,60 +27,36 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Messages;
 using System;
 
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Extensions
 {
-    /// <summary>
-    /// Describes the configuration for an <see cref="IMessageHandler" /> object.
-    /// </summary>
-    public interface IMessageHandlerConfiguration
+    // RegisterTo()
+    static partial class MJKMessageExtensionMethods
     {
-        #region Properties (1)
+        #region Methods (1)
 
         /// <summary>
-        /// Gets or sets if the underlying distributor owns the handler or not.
+        /// Registers the handler in a <see cref="MessageDistributor" /> class.
         /// </summary>
-        bool OwnsHandler { get; set; }
-
-        #endregion Properties (1)
-
-        #region Methods (4)
-
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForReceive<TMsg>();
-
-        /// <summary>
-        /// Registers the underlying handler for receiving messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
+        /// <param name="handler">The handler to register.</param>
+        /// <param name="distributor">The target distributor.</param>
+        /// <param name="ownsHandler"><paramref name="distributor" /> owns handler or not.</param>
+        /// <returns>The configuration.</returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
+        /// <paramref name="handler" /> is <see langword="null" />.
         /// </exception>
-        IMessageHandlerConfiguration RegisterForReceive(Type msgType);
-
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <typeparam name="TMsg">The type of the message.</typeparam>
-        /// <returns>That instance.</returns>
-        IMessageHandlerConfiguration RegisterForSend<TMsg>();
-
-        /// <summary>
-        /// Registers the underlying handler for sending messages of a specific type.
-        /// </summary>
-        /// <param name="msgType">The type of the message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="msgType" /> is <see langword="null" />.
+        /// <exception cref="NullReferenceException">
+        /// <paramref name="distributor" /> is <see langword="null" />.
         /// </exception>
-        IMessageHandlerConfiguration RegisterForSend(Type msgType);
+        public static IMessageHandlerConfiguration RegisterTo(this IMessageHandler handler,
+                                                              MessageDistributor distributor, bool ownsHandler = false)
+        {
+            return distributor.RegisterHandler(handler: handler,
+                                               ownsHandler: ownsHandler);
+        }
 
-        #endregion Methods (4)
+        #endregion Methods (1)
     }
 }
