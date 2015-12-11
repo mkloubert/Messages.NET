@@ -152,3 +152,34 @@ public interface INewContact
     string Lastname { get; set; }
 }
 ```
+
+#### Receive messages in background
+
+By default any member that receives a message is executed in the current thread.
+
+You can setup the `ReceiveMessageAttribute` by setting its `ThreadOption` property:
+
+```csharp
+public class NewContactReceiver : MessageHandlerBase
+{
+    [ReceiveMessage(ThreadOption = MessageThreadOption.Background)]
+    protected void HandleNewContact(IMessageContext<INewContact> msg)
+    {
+         // ...
+    }
+}
+```
+
+Or shorter:
+
+```csharp
+public class NewContactReceiver : MessageHandlerBase
+{
+    [ReceiveMessage(MessageThreadOption.Background)]
+    protected void HandleNewContact(IMessageContext<INewContact> msg)
+    {
+         // ...
+    }
+}
+```
+
