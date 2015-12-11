@@ -195,6 +195,30 @@ namespace MarcelJoachimKloubert.Messages
             return DateTimeOffset.Now;
         }
 
+        private static object GetRealMemberArgument(IMessageContext<object> msgCtx, Type memberType)
+        {
+            object result = msgCtx;
+            if (memberType.IsInstanceOfType(msgCtx.Message))
+            {
+                result = msgCtx.Message;
+            }
+
+            return result;
+        }
+
+        private static Type GetRealMessageType(Type msgType, Type memberType)
+        {
+            if (msgType != null)
+            {
+                return msgType;
+            }
+
+            var genericParams = memberType.GetGenericArguments();
+
+            return genericParams.Length > 0 ? genericParams.Single()
+                                            : memberType;
+        }
+
         private static MethodInfo GetSubscribeMethod(IMessageHandlerContext ctx)
         {
             var ctxType = ctx.GetType();
@@ -445,21 +469,18 @@ namespace MarcelJoachimKloubert.Messages
 
         private static void SubscribeField(IMessageHandlerContext ctx, FieldInfo field, ReceiveMessageAttribute attrib)
         {
-            var msgType = attrib.MessageType;
+            var fieldType = field.FieldType;
 
-            if (msgType == null)
-            {
-                var fieldType = field.FieldType;
-
-                msgType = fieldType.GetGenericArguments()[0];
-            }
+            var msgType = GetRealMessageType(attrib.MessageType, fieldType);
 
             var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
 
             var action = new Action<object>((m) =>
                 {
+                    var msg = (IMessageContext<object>)m;
+
                     field.SetValue(obj: ctx.Handler,
-                                   value: m);
+                                   value: GetRealMemberArgument(msg, fieldType));
                 });
 
             sm.Invoke(obj: ctx,
@@ -468,22 +489,19 @@ namespace MarcelJoachimKloubert.Messages
 
         private static void SubscribeMethod(IMessageHandlerContext ctx, MethodInfo method, ReceiveMessageAttribute attrib)
         {
-            var msgType = attrib.MessageType;
+            var param = method.GetParameters()[0];
+            var paramType = param.ParameterType;
 
-            if (msgType == null)
-            {
-                var param = method.GetParameters()[0];
-                var paramType = param.ParameterType;
-
-                msgType = paramType.GetGenericArguments()[0];
-            }
+            var msgType = GetRealMessageType(attrib.MessageType, paramType);
 
             var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
 
             var action = new Action<object>((m) =>
                 {
+                    var msg = (IMessageContext<object>)m;
+
                     method.Invoke(obj: ctx.Handler,
-                                  parameters: new object[] { m });
+                                  parameters: new object[] { GetRealMemberArgument(msg, paramType) });
                 });
 
             sm.Invoke(obj: ctx,
@@ -492,20 +510,17 @@ namespace MarcelJoachimKloubert.Messages
 
         private static void SubscribeProperty(IMessageHandlerContext ctx, PropertyInfo property, ReceiveMessageAttribute attrib)
         {
-            var msgType = attrib.MessageType;
+            var propertyType = property.PropertyType;
 
-            if (msgType == null)
-            {
-                var propertyType = property.PropertyType;
-
-                msgType = propertyType.GetGenericArguments()[0];
-            }
+            var msgType = GetRealMessageType(attrib.MessageType, propertyType);
 
             var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
 
             var action = new Action<object>((m) =>
                 {
-                    property.SetValue(ctx.Handler, m,
+                    var msg = (IMessageContext<object>)m;
+
+                    property.SetValue(ctx.Handler, GetRealMemberArgument(msg, propertyType),
                                       index: null);
                 });
 

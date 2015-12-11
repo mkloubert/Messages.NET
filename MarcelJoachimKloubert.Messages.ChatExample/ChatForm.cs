@@ -102,9 +102,9 @@ namespace MarcelJoachimKloubert.Messages.ChatExample
         }
 
         [ReceiveMessage(MessageThreadOption.Background)]
-        protected void ReceiveChatMessage(IMessageContext<INewChatMessage> msg)
+        protected void ReceiveChatMessage(INewChatMessage msg)
         {
-            InvokeThreadSafe((cf) => AppendChatMessage(msg.Message));
+            InvokeThreadSafe((cf) => AppendChatMessage(msg));
         }
 
         protected void InvokeThreadSafe(Action<ChatForm> action)
