@@ -27,6 +27,12 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Messages;
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+
 namespace MarcelJoachimKloubert.Extensions
 {
     /// <summary>
@@ -34,5 +40,45 @@ namespace MarcelJoachimKloubert.Extensions
     /// </summary>
     public static partial class MJKMessageExtensionMethods
     {
+        #region Methods (1)
+
+        private static MethodInfo GetHandlerContextMethod<TCtx>(Expression<Action> expr)
+            where TCtx : IMessageHandlerContext
+        {
+            var methodName = ((MethodCallExpression)expr.Body).Method.Name;
+
+            return typeof(TCtx).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                               .First(x =>
+                               {
+                                   if (x.Name != methodName)
+                                   {
+                                       return false;
+                                   }
+
+                                   if (!x.IsGenericMethod)
+                                   {
+                                       return false;
+                                   }
+
+                                   var genericParams = x.GetGenericArguments();
+                                   if (genericParams.Length != 1)
+                                   {
+                                       return false;
+                                   }
+
+                                   var @params = x.GetParameters();
+                                   if (@params.Length != 1)
+                                   {
+                                       return false;
+                                   }
+
+                                   var messageCtxType = typeof(IMessageContext<>).MakeGenericType(genericParams[0]);
+                                   var methodActionType = typeof(Action<>).MakeGenericType(messageCtxType);
+
+                                   return methodActionType == @params[0].ParameterType;
+                               });
+        }
+
+        #endregion Methods (1)
     }
 }

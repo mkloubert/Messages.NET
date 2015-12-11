@@ -27,65 +27,50 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Messages;
 using System;
-using System.Collections.Generic;
+using System.Linq;
 
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Extensions
 {
-    /// <summary>
-    /// Describes a context for a message handler.
-    /// </summary>
-    public interface IMessageHandlerContext
+    // ClearSubscriptions
+    static partial class MJKMessageExtensionMethods
     {
-        #region Properties (1)
+        #region Methods (1)
 
         /// <summary>
-        /// Gets the underlying handler.
+        /// Removes all subscriptions.
         /// </summary>
-        IMessageHandler Handler { get; }
-
-        #endregion Properties (1)
-
-        #region Methods (6)
-
-        /// <summary>
-        /// Creates a new message.
-        /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        /// <returns>The created message (context)</returns>
-        INewMessageContext<TMsg> CreateMessage<TMsg>();
-
-        /// <summary>
-        /// Returns all message types with their subscriptions.
-        /// </summary>
-        /// <returns>The list of subscriptions.</returns>
-        IDictionary<Type, IEnumerable<Delegate>> GetSubscriptions();
-
-        /// <summary>
-        /// Subscribes for receiving a message.
-        /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        /// <param name="handler">The action that handles a received message.</param>
-        /// <returns>That instance.</returns>
+        /// <typeparam name="TCtx">Type of the handler context.</typeparam>
+        /// <param name="ctx">The handler context.</param>
+        /// <returns>The instance from <paramref name="ctx" />.</returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="handler" /> is <see langword="null" />.
+        /// <paramref name="ctx" /> is <see langword="null" />.
         /// </exception>
-        IMessageHandlerContext Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler);
+        public static TCtx ClearSubscriptions<TCtx>(this TCtx ctx)
+            where TCtx : IMessageHandlerContext
+        {
+            if (ctx == null)
+            {
+                throw new ArgumentNullException("ctx");
+            }
 
-        /// <summary>
-        /// Unsubscribes for receiving a message.
-        /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        /// <param name="handler">The action to unsubscribe.</param>
-        /// <returns>That instance.</returns>
-        IMessageHandlerContext Unsubscribe<TMsg>(Action<IMessageContext<TMsg>> handler);
+            using (var e = ctx.GetSubscriptions().Select(x => x.Key).GetEnumerator())
+            {
+                while (e.MoveNext())
+                {
+                    var msgType = e.Current;
 
-        /// <summary>
-        /// Unsubscribes all handlers for receiving a message.
-        /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        IMessageHandlerContext UnsubscribeAll<TMsg>();
+                    var uam = GetHandlerContextMethod<TCtx>(() => ctx.UnsubscribeAll<object>()).MakeGenericMethod(msgType);
 
-        #endregion Methods (6)
+                    uam.Invoke(obj: ctx,
+                               parameters: null);
+                }
+            }
+
+            return ctx;
+        }
+
+        #endregion Methods (1)
     }
 }

@@ -71,7 +71,7 @@ namespace MarcelJoachimKloubert.Messages
 
             #endregion Properties (3)
 
-            #region Methods (5)
+            #region Methods (8)
 
             public INewMessageContext<TMsg> CreateMessage<TMsg>()
             {
@@ -239,6 +239,18 @@ namespace MarcelJoachimKloubert.Messages
                 }
             }
 
+            public IDictionary<Type, IEnumerable<Delegate>> GetSubscriptions()
+            {
+                Dictionary<Type, IEnumerable<Delegate>> result;
+                lock (SyncRoot)
+                {
+                    result = SUBSCRIPTIONS.ToDictionary(keySelector: (x) => x.Key,
+                                                        elementSelector: (x) => (IEnumerable<Delegate>)x.Value.ToList());
+                }
+
+                return result;
+            }
+
             internal bool? Receive<TMsg>(MessageContext<TMsg> msg)
             {
                 if (msg == null)
@@ -302,7 +314,7 @@ namespace MarcelJoachimKloubert.Messages
                 return true;
             }
 
-            public void Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler)
+            public IMessageHandlerContext Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler)
             {
                 lock (SyncRoot)
                 {
@@ -322,9 +334,43 @@ namespace MarcelJoachimKloubert.Messages
 
                     handlers.Add(handler);
                 }
+
+                return this;
             }
 
-            #endregion Methods (5)
+            public IMessageHandlerContext Unsubscribe<TMsg>(Action<IMessageContext<TMsg>> handler)
+            {
+                lock (SyncRoot)
+                {
+                    if (handler != null)
+                    {
+                        var msgType = typeof(TMsg);
+
+                        ICollection<Delegate> handlers;
+                        if (SUBSCRIPTIONS.TryGetValue(msgType, out handlers))
+                        {
+                            while (handlers.Contains(handler))
+                            {
+                                handlers.Remove(handler);
+                            }
+                        }
+                    }
+                }
+
+                return this;
+            }
+
+            public IMessageHandlerContext UnsubscribeAll<TMsg>()
+            {
+                lock (SyncRoot)
+                {
+                    SUBSCRIPTIONS.Remove(key: typeof(TMsg));
+                }
+
+                return this;
+            }
+
+            #endregion Methods (8)
         }
     }
 }

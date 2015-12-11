@@ -27,65 +27,98 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Messages;
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Extensions
 {
-    /// <summary>
-    /// Describes a context for a message handler.
-    /// </summary>
-    public interface IMessageHandlerContext
+    // Subscribe()
+    static partial class MJKMessageExtensionMethods
     {
-        #region Properties (1)
+        #region Methods (3)
 
         /// <summary>
-        /// Gets the underlying handler.
-        /// </summary>
-        IMessageHandler Handler { get; }
-
-        #endregion Properties (1)
-
-        #region Methods (6)
-
-        /// <summary>
-        /// Creates a new message.
+        /// Subscribes for receiving a non-wrapped message.
         /// </summary>
         /// <typeparam name="TMsg">Type of the message.</typeparam>
-        /// <returns>The created message (context)</returns>
-        INewMessageContext<TMsg> CreateMessage<TMsg>();
-
-        /// <summary>
-        /// Returns all message types with their subscriptions.
-        /// </summary>
-        /// <returns>The list of subscriptions.</returns>
-        IDictionary<Type, IEnumerable<Delegate>> GetSubscriptions();
-
-        /// <summary>
-        /// Subscribes for receiving a message.
-        /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        /// <param name="handler">The action that handles a received message.</param>
-        /// <returns>That instance.</returns>
+        /// <param name="ctx">The handler context.</param>
+        /// <param name="noContextHandler">The action that handles a received message.</param>
+        /// <returns>The action that is used in <paramref name="ctx" />.</returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="handler" /> is <see langword="null" />.
+        /// <paramref name="ctx" /> and/or <paramref name="noContextHandler" /> is <see langword="null" />.
         /// </exception>
-        IMessageHandlerContext Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler);
+        public static Action<IMessageContext<TMsg>> Subscribe<TMsg>(this IMessageHandlerContext ctx, Action<TMsg> noContextHandler)
+        {
+            if (ctx == null)
+            {
+                throw new ArgumentNullException("ctx");
+            }
+
+            if (noContextHandler == null)
+            {
+                throw new ArgumentNullException("noContextHandler");
+            }
+
+            Action<IMessageContext<TMsg>> result = (msgCtx) => noContextHandler(msgCtx.Message);
+
+            ctx.Subscribe<TMsg>(handler: result);
+            return result;
+        }
 
         /// <summary>
-        /// Unsubscribes for receiving a message.
+        /// Subscribes for receiving a non-wrapped message.
         /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        /// <param name="handler">The action to unsubscribe.</param>
-        /// <returns>That instance.</returns>
-        IMessageHandlerContext Unsubscribe<TMsg>(Action<IMessageContext<TMsg>> handler);
+        /// <param name="ctx">The handler context.</param>
+        /// <param name="msgType">The message type.</param>
+        /// <param name="noContextHandler">The action that handles a received message.</param>
+        /// <returns>The action that is used in <paramref name="ctx" />.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="ctx" />, <paramref name="msgType" /> and/or <paramref name="noContextHandler" /> is <see langword="null" />.
+        /// </exception>
+        public static Action<IMessageContext<object>> Subscribe(this IMessageHandlerContext ctx, Type msgType, Action<object> noContextHandler)
+        {
+            if (noContextHandler == null)
+            {
+                throw new ArgumentNullException("noContextHandler");
+            }
+
+            Action<IMessageContext<object>> result = (msgCtx) => noContextHandler(msgCtx.Message);
+            Subscribe(ctx: ctx,
+                      msgType: msgType,
+                      handler: result);
+
+            return result;
+        }
 
         /// <summary>
-        /// Unsubscribes all handlers for receiving a message.
+        /// <see cref="IMessageHandlerContext.Subscribe{TMsg}(Action{IMessageContext{TMsg}})" />
         /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        IMessageHandlerContext UnsubscribeAll<TMsg>();
+        public static TCtx Subscribe<TCtx>(this TCtx ctx, Type msgType, Action<IMessageContext<object>> handler)
+            where TCtx : IMessageHandlerContext
+        {
+            if (ctx == null)
+            {
+                throw new ArgumentNullException("ctx");
+            }
 
-        #endregion Methods (6)
+            if (msgType == null)
+            {
+                throw new ArgumentNullException("msgType");
+            }
+
+            if (handler == null)
+            {
+                throw new ArgumentNullException("handler");
+            }
+
+            var sm = GetHandlerContextMethod<TCtx>(() => ctx.Subscribe<object>(handler)).MakeGenericMethod(msgType);
+
+            sm.Invoke(obj: ctx,
+                      parameters: new object[] { handler });
+
+            return ctx;
+        }
+
+        #endregion Methods (3)
     }
 }

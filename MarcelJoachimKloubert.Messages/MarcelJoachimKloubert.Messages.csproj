@@ -47,6 +47,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\Handlers.ClearSubscriptions.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.GetMessageTypes.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.Unsubscribe.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
     <Compile Include="Extensions\Handlers.cs" />
     <Compile Include="Extensions\Handlers.RegisterFor.cs">
       <DependentUpon>Handlers.cs</DependentUpon>
@@ -61,6 +70,12 @@
       <DependentUpon>Handlers.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions\Handlers.RegisterTo.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.Subscribe.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.UnsubscribeAll.cs">
       <DependentUpon>Handlers.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions\_Extensions.cs" />

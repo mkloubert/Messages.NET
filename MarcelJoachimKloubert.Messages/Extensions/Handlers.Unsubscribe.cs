@@ -27,65 +27,45 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Messages;
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Extensions
 {
-    /// <summary>
-    /// Describes a context for a message handler.
-    /// </summary>
-    public interface IMessageHandlerContext
+    // Unsubscribe()
+    static partial class MJKMessageExtensionMethods
     {
-        #region Properties (1)
+        #region Methods (1)
 
         /// <summary>
-        /// Gets the underlying handler.
+        /// <see cref="IMessageHandlerContext.Unsubscribe{TMsg}(Action{IMessageContext{TMsg}})" />
         /// </summary>
-        IMessageHandler Handler { get; }
+        public static TCtx Unsubscribe<TCtx>(this TCtx ctx, Type msgType, Action<IMessageContext<object>> handler)
+            where TCtx : IMessageHandlerContext
+        {
+            if (ctx == null)
+            {
+                throw new ArgumentNullException("ctx");
+            }
 
-        #endregion Properties (1)
+            if (msgType == null)
+            {
+                throw new ArgumentNullException("msgType");
+            }
 
-        #region Methods (6)
+            if (handler == null)
+            {
+                throw new ArgumentNullException("handler");
+            }
 
-        /// <summary>
-        /// Creates a new message.
-        /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        /// <returns>The created message (context)</returns>
-        INewMessageContext<TMsg> CreateMessage<TMsg>();
+            var um = GetHandlerContextMethod<TCtx>(() => ctx.Unsubscribe<object>(handler)).MakeGenericMethod(msgType);
 
-        /// <summary>
-        /// Returns all message types with their subscriptions.
-        /// </summary>
-        /// <returns>The list of subscriptions.</returns>
-        IDictionary<Type, IEnumerable<Delegate>> GetSubscriptions();
+            um.Invoke(obj: ctx,
+                      parameters: new object[] { handler });
 
-        /// <summary>
-        /// Subscribes for receiving a message.
-        /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        /// <param name="handler">The action that handles a received message.</param>
-        /// <returns>That instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="handler" /> is <see langword="null" />.
-        /// </exception>
-        IMessageHandlerContext Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler);
+            return ctx;
+        }
 
-        /// <summary>
-        /// Unsubscribes for receiving a message.
-        /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        /// <param name="handler">The action to unsubscribe.</param>
-        /// <returns>That instance.</returns>
-        IMessageHandlerContext Unsubscribe<TMsg>(Action<IMessageContext<TMsg>> handler);
-
-        /// <summary>
-        /// Unsubscribes all handlers for receiving a message.
-        /// </summary>
-        /// <typeparam name="TMsg">Type of the message.</typeparam>
-        IMessageHandlerContext UnsubscribeAll<TMsg>();
-
-        #endregion Methods (6)
+        #endregion Methods (1)
     }
 }
