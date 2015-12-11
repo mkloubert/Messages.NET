@@ -157,7 +157,7 @@ public interface INewContact
 
 By default any member that receives a message is executed in the current thread.
 
-You can setup the `ReceiveMessageAttribute` by setting its `ThreadOption` property:
+You can setup the `ReceiveMessageAttribute` by setting its `ThreadOption` property if you want to execute the underlying member in a background thread / task, e.g.:
 
 ```csharp
 public class NewContactReceiver : MessageHandlerBase
