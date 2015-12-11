@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
 
 namespace MarcelJoachimKloubert.Messages
 {
@@ -71,7 +72,7 @@ namespace MarcelJoachimKloubert.Messages
 
             #endregion Properties (3)
 
-            #region Methods (8)
+            #region Methods (9)
 
             public INewMessageContext<TMsg> CreateMessage<TMsg>()
             {
@@ -314,7 +315,8 @@ namespace MarcelJoachimKloubert.Messages
                 return true;
             }
 
-            public IMessageHandlerContext Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler)
+            public IMessageHandlerContext Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler,
+                                                          MessageThreadOption threadOption = MessageThreadOption.Current)
             {
                 lock (SyncRoot)
                 {
@@ -332,7 +334,8 @@ namespace MarcelJoachimKloubert.Messages
                         SUBSCRIPTIONS.Add(msgType, handlers);
                     }
 
-                    handlers.Add(handler);
+                    handlers.Add(WrapSubscribeHandler<TMsg>(handler: handler,
+                                                            threadOption: threadOption));
                 }
 
                 return this;
@@ -370,7 +373,30 @@ namespace MarcelJoachimKloubert.Messages
                 return this;
             }
 
-            #endregion Methods (8)
+            private static Action<IMessageContext<TMsg>> WrapSubscribeHandler<TMsg>(Action<IMessageContext<TMsg>> handler,
+                                                                                    MessageThreadOption threadOption)
+            {
+                if (threadOption == MessageThreadOption.Background)
+                {
+                    return (msgCtx) =>
+                        {
+                            Task.Factory
+                                .StartNew(action: (s) =>
+                                     {
+                                         var taskArgs = (object[])s;
+
+                                         var h = (Action<IMessageContext<TMsg>>)taskArgs[0];
+                                         var mc = (IMessageContext<TMsg>)taskArgs[1];
+
+                                         h(mc);
+                                     }, state: new object[] { handler, msgCtx });
+                        };
+                }
+
+                return handler;
+            }
+
+            #endregion Methods (9)
         }
     }
 }

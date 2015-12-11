@@ -66,11 +66,13 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         /// <typeparam name="TMsg">Type of the message.</typeparam>
         /// <param name="handler">The action that handles a received message.</param>
+        /// <param name="threadOption">The way <paramref name="handler" /> should be receive a message.</param>
         /// <returns>That instance.</returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="handler" /> is <see langword="null" />.
         /// </exception>
-        IMessageHandlerContext Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler);
+        IMessageHandlerContext Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler,
+                                               MessageThreadOption threadOption = MessageThreadOption.Current);
 
         /// <summary>
         /// Unsubscribes for receiving a message.

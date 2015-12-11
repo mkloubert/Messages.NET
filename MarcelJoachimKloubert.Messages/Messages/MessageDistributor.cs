@@ -32,7 +32,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading.Tasks;
 
 namespace MarcelJoachimKloubert.Messages
 {
@@ -128,7 +127,7 @@ namespace MarcelJoachimKloubert.Messages
 
         #endregion Properties (5)
 
-        #region Methods (15)
+        #region Methods (14)
 
         /// <inheriteddoc />
         public void Dispose()
@@ -243,7 +242,7 @@ namespace MarcelJoachimKloubert.Messages
                               }
 
                               var @params = x.GetParameters();
-                              if (@params.Length != 1)
+                              if (@params.Length != 2)
                               {
                                   return false;
                               }
@@ -484,7 +483,7 @@ namespace MarcelJoachimKloubert.Messages
                 });
 
             sm.Invoke(obj: ctx,
-                      parameters: new object[] { WrapSubscribeAction(action, attrib.ThreadOption) });
+                      parameters: new object[] { action, attrib.ThreadOption });
         }
 
         private static void SubscribeMethod(IMessageHandlerContext ctx, MethodInfo method, ReceiveMessageAttribute attrib)
@@ -505,7 +504,7 @@ namespace MarcelJoachimKloubert.Messages
                 });
 
             sm.Invoke(obj: ctx,
-                      parameters: new object[] { WrapSubscribeAction(action, attrib.ThreadOption) });
+                      parameters: new object[] { action, attrib.ThreadOption });
         }
 
         private static void SubscribeProperty(IMessageHandlerContext ctx, PropertyInfo property, ReceiveMessageAttribute attrib)
@@ -525,7 +524,7 @@ namespace MarcelJoachimKloubert.Messages
                 });
 
             sm.Invoke(obj: ctx,
-                      parameters: new object[] { WrapSubscribeAction(action, attrib.ThreadOption) });
+                      parameters: new object[] { action, attrib.ThreadOption });
         }
 
         /// <summary>
@@ -542,20 +541,6 @@ namespace MarcelJoachimKloubert.Messages
             }
         }
 
-        private static Action<object> WrapSubscribeAction(Action<object> action, MessageThreadOption threadOption)
-        {
-            if (threadOption == MessageThreadOption.Background)
-            {
-                return (m) =>
-                {
-                    Task.Factory
-                        .StartNew(action, state: m);
-                };
-            }
-
-            return action;
-        }
-
-        #endregion Methods (15)
+        #endregion Methods (14)
     }
 }

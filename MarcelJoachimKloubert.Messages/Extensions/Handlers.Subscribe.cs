@@ -43,11 +43,13 @@ namespace MarcelJoachimKloubert.Extensions
         /// <typeparam name="TMsg">Type of the message.</typeparam>
         /// <param name="ctx">The handler context.</param>
         /// <param name="noContextHandler">The action that handles a received message.</param>
+        /// <param name="threadOption">The way <paramref name="noContextHandler" /> should be receive a message.</param>
         /// <returns>The action that is used in <paramref name="ctx" />.</returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="ctx" /> and/or <paramref name="noContextHandler" /> is <see langword="null" />.
         /// </exception>
-        public static Action<IMessageContext<TMsg>> Subscribe<TMsg>(this IMessageHandlerContext ctx, Action<TMsg> noContextHandler)
+        public static Action<IMessageContext<TMsg>> Subscribe<TMsg>(this IMessageHandlerContext ctx,
+                                                                    Action<TMsg> noContextHandler, MessageThreadOption threadOption = MessageThreadOption.Current)
         {
             if (ctx == null)
             {
@@ -61,7 +63,8 @@ namespace MarcelJoachimKloubert.Extensions
 
             Action<IMessageContext<TMsg>> result = (msgCtx) => noContextHandler(msgCtx.Message);
 
-            ctx.Subscribe<TMsg>(handler: result);
+            ctx.Subscribe<TMsg>(handler: result,
+                                threadOption: threadOption);
             return result;
         }
 
@@ -71,11 +74,13 @@ namespace MarcelJoachimKloubert.Extensions
         /// <param name="ctx">The handler context.</param>
         /// <param name="msgType">The message type.</param>
         /// <param name="noContextHandler">The action that handles a received message.</param>
+        /// <param name="threadOption">The way <paramref name="noContextHandler" /> should be receive a message.</param>
         /// <returns>The action that is used in <paramref name="ctx" />.</returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="ctx" />, <paramref name="msgType" /> and/or <paramref name="noContextHandler" /> is <see langword="null" />.
         /// </exception>
-        public static Action<IMessageContext<object>> Subscribe(this IMessageHandlerContext ctx, Type msgType, Action<object> noContextHandler)
+        public static Action<IMessageContext<object>> Subscribe(this IMessageHandlerContext ctx, Type msgType,
+                                                                Action<object> noContextHandler, MessageThreadOption threadOption = MessageThreadOption.Current)
         {
             if (noContextHandler == null)
             {
@@ -85,15 +90,17 @@ namespace MarcelJoachimKloubert.Extensions
             Action<IMessageContext<object>> result = (msgCtx) => noContextHandler(msgCtx.Message);
             Subscribe(ctx: ctx,
                       msgType: msgType,
-                      handler: result);
+                      handler: result, threadOption: threadOption);
 
             return result;
         }
 
         /// <summary>
-        /// <see cref="IMessageHandlerContext.Subscribe{TMsg}(Action{IMessageContext{TMsg}})" />
+        /// <see cref="IMessageHandlerContext.Subscribe{TMsg}(Action{IMessageContext{TMsg}}, MessageThreadOption)" />
         /// </summary>
-        public static TCtx Subscribe<TCtx>(this TCtx ctx, Type msgType, Action<IMessageContext<object>> handler)
+        public static TCtx Subscribe<TCtx>(this TCtx ctx,
+                                           Type msgType,
+                                           Action<IMessageContext<object>> handler, MessageThreadOption threadOption = MessageThreadOption.Current)
             where TCtx : IMessageHandlerContext
         {
             if (ctx == null)
@@ -111,7 +118,7 @@ namespace MarcelJoachimKloubert.Extensions
                 throw new ArgumentNullException("handler");
             }
 
-            var sm = GetHandlerContextMethod<TCtx>(() => ctx.Subscribe<object>(handler)).MakeGenericMethod(msgType);
+            var sm = GetHandlerContextMethod<TCtx>(() => ctx.Subscribe<object>(handler, MessageThreadOption.Current)).MakeGenericMethod(msgType);
 
             sm.Invoke(obj: ctx,
                       parameters: new object[] { handler });
