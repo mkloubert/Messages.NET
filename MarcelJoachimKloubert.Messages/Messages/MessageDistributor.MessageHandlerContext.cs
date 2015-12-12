@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace MarcelJoachimKloubert.Messages
@@ -158,9 +159,9 @@ namespace MarcelJoachimKloubert.Messages
 
                         fieldNamesInUse.Add(fieldName);
 
-                        var field = typeBuilder.DefineField("_" + fieldName,
-                                                            propertyType,
-                                                            FieldAttributes.Family);
+                        var fieldBuilder = typeBuilder.DefineField("_" + fieldName,
+                                                                   propertyType,
+                                                                   FieldAttributes.Family);
 
                         // getter
                         {
@@ -172,7 +173,7 @@ namespace MarcelJoachimKloubert.Messages
                             var ilGen = methodBuilder.GetILGenerator();
 
                             ilGen.Emit(OpCodes.Ldarg_0);      // load "this"
-                            ilGen.Emit(OpCodes.Ldfld, field); // load the property's underlying field onto the stack
+                            ilGen.Emit(OpCodes.Ldfld, fieldBuilder); // load the property's underlying field onto the stack
                             ilGen.Emit(OpCodes.Ret);          // return the value on the stack
 
                             propertyBuilder.SetGetMethod(methodBuilder);
@@ -189,27 +190,85 @@ namespace MarcelJoachimKloubert.Messages
 
                             ilGen.Emit(OpCodes.Ldarg_0);      // load "this"
                             ilGen.Emit(OpCodes.Ldarg_1);      // load "value" onto the stack
-                            ilGen.Emit(OpCodes.Stfld, field); // set the field equal to the "value" on the stack
+                            ilGen.Emit(OpCodes.Stfld, fieldBuilder); // set the field equal to the "value" on the stack
                             ilGen.Emit(OpCodes.Ret);          // return nothing
 
                             propertyBuilder.SetSetMethod(methodBuilder);
                         }
+
+                        if (propertyType.IsSerializable)
+                        {
+                            // DataMemberAttribute
+                            {
+                                var dataMemberAttrib = typeof(DataMemberAttribute).GetConstructor(Type.EmptyTypes);
+                                var attribBuilder = new CustomAttributeBuilder(dataMemberAttrib, new object[0]);
+
+                                propertyBuilder.SetCustomAttribute(attribBuilder);
+                            }
+                        }
+                        else
+                        {
+                            // NonSerializedAttribute
+                            {
+                                var nonSerializedAttrib = typeof(NonSerializedAttribute).GetConstructor(Type.EmptyTypes);
+                                var attribBuilder = new CustomAttributeBuilder(nonSerializedAttrib, new object[0]);
+
+                                fieldBuilder.SetCustomAttribute(attribBuilder);
+                            }
+                        }
                     }
                 }
 
-                // constructor
+                // .ctor()
                 {
-                    var baseConstructor = baseType.GetConstructor(new Type[0]);
+                    var constructorParams = Type.EmptyTypes;
+
+                    var baseConstructor = baseType.GetConstructor(constructorParams);
 
                     var constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public,
                                                                            CallingConventions.Standard,
-                                                                           Type.EmptyTypes);
+                                                                           constructorParams);
 
                     var ilGen = constructorBuilder.GetILGenerator();
                     ilGen.Emit(OpCodes.Ldarg_0);                  // load "this"
                     ilGen.Emit(OpCodes.Call, baseConstructor);    // call the base constructor
 
                     ilGen.Emit(OpCodes.Ret);    // return nothing
+                }
+
+                // .ctor(SerializationInfo, StreamingContext)
+                {
+                    var constructorParams = new[] { typeof(SerializationInfo), typeof(StreamingContext) };
+
+                    var baseConstructor = baseType.GetConstructor(constructorParams);
+
+                    var constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public,
+                                                                           CallingConventions.Standard,
+                                                                           constructorParams);
+
+                    var ilGen = constructorBuilder.GetILGenerator();
+                    ilGen.Emit(OpCodes.Ldarg_0);                  // load "this"
+                    ilGen.Emit(OpCodes.Ldarg_1);                  // load "SerializationInfo"
+                    ilGen.Emit(OpCodes.Ldarg_2);                  // load "StreamingContext"
+                    ilGen.Emit(OpCodes.Call, baseConstructor);    // call the base constructor
+
+                    ilGen.Emit(OpCodes.Ret);    // return nothing
+                }
+
+                // SerializableAttribute
+                {
+                    var serializableAttrib = typeof(SerializableAttribute).GetConstructor(Type.EmptyTypes);
+                    var attribBuilder = new CustomAttributeBuilder(serializableAttrib, new object[0]);
+
+                    typeBuilder.SetCustomAttribute(attribBuilder);
+                }
+
+                // DataContractAttribute
+                {
+                    var dataContractAttrib = typeof(DataContractAttribute).GetConstructor(Type.EmptyTypes);
+                    var attribBuilder = new CustomAttributeBuilder(dataContractAttrib, new object[0]);
+
+                    typeBuilder.SetCustomAttribute(attribBuilder);
                 }
 
                 return typeBuilder.CreateType();
