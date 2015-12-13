@@ -51,9 +51,7 @@ namespace MarcelJoachimKloubert.Messages
 
         #region Properties (1)
 
-        /// <summary>
-        /// Gets the underlying log entry.
-        /// </summary>
+        /// <inheriteddoc />
         public new INewMessageLogEntry Log
         {
             get { return (INewMessageLogEntry)base.Log; }

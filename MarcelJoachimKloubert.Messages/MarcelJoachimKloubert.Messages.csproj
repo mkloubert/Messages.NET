@@ -92,7 +92,7 @@
     <Compile Include="Messages\MessageContractAttribute.cs" />
     <Compile Include="Messages\MessageDirections.cs" />
     <Compile Include="Messages\MessageDistributor.AggregateMessageHandlerConfiguration.cs">
-      <DependentUpon>MessageDirections.cs</DependentUpon>
+      <DependentUpon>MessageDistributor.cs</DependentUpon>
     </Compile>
     <Compile Include="Messages\MessageDistributor.cs" />
     <Compile Include="Messages\MessageDistributor.MessageContext.cs">

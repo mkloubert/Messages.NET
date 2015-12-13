@@ -34,7 +34,7 @@ namespace MarcelJoachimKloubert.Messages
     /// <summary>
     /// A basic message handler.
     /// </summary>
-    public abstract class MessageHandlerBase : IMessageHandler
+    public abstract class MessageHandlerBase : MarshalByRefObject, IMessageHandler
     {
         #region Constructors (2)
 

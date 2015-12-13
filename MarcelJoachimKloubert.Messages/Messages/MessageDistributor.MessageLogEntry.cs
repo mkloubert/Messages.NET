@@ -33,7 +33,7 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class MessageLogEntry<TMsg> : IMessageLogEntry
+        internal class MessageLogEntry<TMsg> : MarshalByRefObject, IMessageLogEntry
         {
             #region Properties (10)
 

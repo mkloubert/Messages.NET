@@ -6,7 +6,7 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class AggregateMessageHandlerConfiguration : IMessageHandlerConfiguration
+        internal class AggregateMessageHandlerConfiguration : MarshalByRefObject, IMessageHandlerConfiguration
         {
             #region Fields (2)
 
@@ -21,14 +21,9 @@ namespace MarcelJoachimKloubert.Messages
             {
                 get
                 {
-                    if (Configurations.Count < 1)
-                    {
-                        return _ownsHandler;
-                    }
-
-                    return Configurations.Select(x => x.OwnsHandler)
+                    return Configurations.Select(x => (bool?)x.OwnsHandler)
                                          .Distinct()
-                                         .SingleOrDefault();
+                                         .SingleOrDefault() ?? _ownsHandler;
                 }
 
                 set

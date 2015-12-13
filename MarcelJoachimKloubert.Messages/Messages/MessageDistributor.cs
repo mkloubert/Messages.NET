@@ -276,14 +276,14 @@ namespace MarcelJoachimKloubert.Messages
             }
 
             var eventHandler = MessageLogReceived;
-            if (eventHandler != null)
+            if (eventHandler == null)
             {
-                eventHandler(this, new MessageLogEventArgs(handler: handler,
-                                                           log: log));
-                return true;
+                return false;
             }
 
-            return false;
+            eventHandler(this, new MessageLogEventArgs(handler: handler,
+                                                       log: log));
+            return true;
         }
 
         /// <summary>
@@ -308,14 +308,14 @@ namespace MarcelJoachimKloubert.Messages
             }
 
             var eventHandler = NewMessageLogReceived;
-            if (eventHandler != null)
+            if (eventHandler == null)
             {
-                eventHandler(this, new NewMessageLogEventArgs(handler: handler,
-                                                              log: log));
-                return true;
+                return false;
             }
 
-            return false;
+            eventHandler(this, new NewMessageLogEventArgs(handler: handler,
+                                                          log: log));
+            return true;
         }
 
         /// <summary>
