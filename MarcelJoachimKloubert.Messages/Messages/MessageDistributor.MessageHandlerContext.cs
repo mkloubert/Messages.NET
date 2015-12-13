@@ -62,14 +62,11 @@ namespace MarcelJoachimKloubert.Messages
 
             #region Properties (3)
 
-            public MessageDistributor Distributor
-            {
-                get { return Config.Distributor; }
-            }
+            public MessageDistributor Distributor => Config.Distributor;
 
             public IMessageHandler Handler { get; internal set; }
 
-            internal object SyncRoot { get; private set; }
+            internal object SyncRoot { get; }
 
             #endregion Properties (3)
 

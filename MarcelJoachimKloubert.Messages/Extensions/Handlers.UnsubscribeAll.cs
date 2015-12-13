@@ -45,12 +45,12 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (ctx == null)
             {
-                throw new ArgumentNullException("ctx");
+                throw new ArgumentNullException(nameof(ctx));
             }
 
             if (msgType == null)
             {
-                throw new ArgumentNullException("msgType");
+                throw new ArgumentNullException(nameof(msgType));
             }
 
             var uam = GetHandlerContextMethod<TCtx>(() => ctx.UnsubscribeAll<object>()).MakeGenericMethod(msgType);
