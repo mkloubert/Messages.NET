@@ -1,88 +1,130 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1895D280-7CB5-49F5-B351-AFE452279E87}</ProjectGuid>
+    <ProjectGuid>{8C9FD1D6-FE7F-4BD8-BB7C-82A4CF2F504B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MarcelJoachimKloubert</RootNamespace>
     <AssemblyName>MarcelJoachimKloubert.Messages</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
+    <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
+    <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DocumentationFile>bin\Debug\MarcelJoachimKloubert.Messages.XML</DocumentationFile>
     <LangVersion>6</LangVersion>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
+    <PlatformTarget>ARM</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\ARM\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>ARM</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>MarcelJoachimKloubert.Messages.snk</AssemblyOriginatorKeyFile>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
+    <PlatformTarget>ARM</PlatformTarget>
+    <OutputPath>bin\ARM\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>ARM</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <EmbeddedResource Include="..\LICENSE">
+      <Link>LICENSE</Link>
+    </EmbeddedResource>
+    <None Include="MarcelJoachimKloubert.Messages.snk" />
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions\Handlers.ClearSubscriptions.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Extensions\Handlers.GetMessageTypes.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Extensions\Handlers.Unsubscribe.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Extensions\Handlers.ClearSubscriptions.cs" />
     <Compile Include="Extensions\Handlers.cs" />
-    <Compile Include="Extensions\Handlers.RegisterFor.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Extensions\Handlers.RegisterAssembly.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Extensions\Handlers.RegisterForReceive.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Extensions\Handlers.RegisterForSend.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Extensions\Handlers.RegisterTo.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Extensions\Handlers.Subscribe.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Extensions\Handlers.UnsubscribeAll.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Extensions\Handlers.GetMessageTypes.cs" />
+    <Compile Include="Extensions\Handlers.RegisterAssembly.cs" />
+    <Compile Include="Extensions\Handlers.RegisterFor.cs" />
+    <Compile Include="Extensions\Handlers.RegisterForReceive.cs" />
+    <Compile Include="Extensions\Handlers.RegisterForSend.cs" />
+    <Compile Include="Extensions\Handlers.RegisterTo.cs" />
+    <Compile Include="Extensions\Handlers.Subscribe.cs" />
+    <Compile Include="Extensions\Handlers.Unsubscribe.cs" />
+    <Compile Include="Extensions\Handlers.UnsubscribeAll.cs" />
     <Compile Include="Extensions\_Extensions.cs" />
     <Compile Include="Messages\IMessageContext.cs" />
     <Compile Include="Messages\IMessageHandler.cs" />
@@ -95,28 +137,14 @@
     <Compile Include="Messages\MessageBase.cs" />
     <Compile Include="Messages\MessageContractAttribute.cs" />
     <Compile Include="Messages\MessageDirections.cs" />
-    <Compile Include="Messages\MessageDistributor.AggregateMessageHandlerConfiguration.cs">
-      <DependentUpon>MessageDistributor.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Messages\MessageDistributor.AggregateMessageHandlerConfiguration.cs" />
     <Compile Include="Messages\MessageDistributor.cs" />
-    <Compile Include="Messages\MessageDistributor.MessageContext.cs">
-      <DependentUpon>MessageDistributor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Messages\MessageDistributor.MessageHandlerConfiguration.cs">
-      <DependentUpon>MessageDistributor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Messages\MessageDistributor.MessageHandlerContext.cs">
-      <DependentUpon>MessageDistributor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Messages\MessageDistributor.MessageLogEntry.cs">
-      <DependentUpon>MessageDistributor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Messages\MessageDistributor.NewMessageContext.cs">
-      <DependentUpon>MessageDistributor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Messages\MessageDistributor.NewMessageLogEntry.cs">
-      <DependentUpon>MessageDistributor.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Messages\MessageDistributor.MessageContext.cs" />
+    <Compile Include="Messages\MessageDistributor.MessageHandlerConfiguration.cs" />
+    <Compile Include="Messages\MessageDistributor.MessageHandlerContext.cs" />
+    <Compile Include="Messages\MessageDistributor.MessageLogEntry.cs" />
+    <Compile Include="Messages\MessageDistributor.NewMessageContext.cs" />
+    <Compile Include="Messages\MessageDistributor.NewMessageLogEntry.cs" />
     <Compile Include="Messages\MessageHandlerBase.cs" />
     <Compile Include="Messages\MessageInstanceAttribute.cs" />
     <Compile Include="Messages\MessageLogCategory.cs" />
@@ -126,14 +154,18 @@
     <Compile Include="Messages\NewMessageLogEventArgs.cs" />
     <Compile Include="Messages\ReceiveMessageAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Content Include="Properties\MarcelJoachimKloubert.Messages.rd.xml" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\LICENSE">
-      <Link>LICENSE</Link>
-    </EmbeddedResource>
-    <None Include="MarcelJoachimKloubert.Messages.snk" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
+    <VisualStudioVersion>14.0</VisualStudioVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>MarcelJoachimKloubert.Messages.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -34,7 +34,7 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class MessageHandlerConfiguration : MarshalByRefObject, IMessageHandlerConfiguration
+        internal class MessageHandlerConfiguration : IMessageHandlerConfiguration
         {
             #region Fields (4)
 

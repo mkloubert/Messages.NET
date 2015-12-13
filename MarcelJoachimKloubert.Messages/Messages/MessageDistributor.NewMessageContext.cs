@@ -42,9 +42,11 @@ namespace MarcelJoachimKloubert.Messages
             internal MessageContext<TMsg> CloneForRecipient()
             {
                 var msg = Message;
-                if (msg is ICloneable)
+                if (msg is MessageBase)
                 {
-                    msg = (TMsg)((ICloneable)msg).Clone();
+                    var clonedMsg = ((MessageBase)((object)msg)).Clone();
+
+                    msg = (TMsg)((object)clonedMsg);
                 }
 
                 return new MessageContext<TMsg>()

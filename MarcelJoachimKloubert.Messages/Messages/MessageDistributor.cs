@@ -61,11 +61,10 @@ namespace MarcelJoachimKloubert.Messages
             _HANDLERS = new List<MessageHandlerContext>();
             _OBJECT_TYPES = new Dictionary<Type, Type>();
 
-            var asm = Assembly.GetExecutingAssembly();
+            var asm = GetType().GetTypeInfo().Assembly;
             var asmName = asm.GetName();
 
-            var asmBuilder = AppDomain.CurrentDomain
-                                      .DefineDynamicAssembly(asmName, AssemblyBuilderAccess.RunAndSave);
+            var asmBuilder = AssemblyBuilder.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.Run);
             _MODULE_BUILDER = asmBuilder.DefineDynamicModule(string.Format("MJKDynamicObjectFactoryModule_{0:N}_{1}",
                                                                            Guid.NewGuid(),
                                                                            GetHashCode()));

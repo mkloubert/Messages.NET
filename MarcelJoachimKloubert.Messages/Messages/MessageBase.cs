@@ -27,17 +27,14 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using System;
-using System.Runtime.Serialization;
-
 namespace MarcelJoachimKloubert.Messages
 {
     /// <summary>
     /// A basic message.
     /// </summary>
-    public class MessageBase : MarshalByRefObject, ICloneable, ISerializable
+    public class MessageBase
     {
-        #region Constructors (2)
+        #region Constructors (1)
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageBase" /> class.
@@ -47,25 +44,9 @@ namespace MarcelJoachimKloubert.Messages
         {
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MessageBase" /> class.
-        /// </summary>
-        /// <param name="info">The serialization information.</param>
-        /// <param name="context">The streaming context.</param>
-        public MessageBase(SerializationInfo info, StreamingContext context)
-        {
-            GetObjectData(info, context);
-        }
+        #endregion Constructors (1)
 
-        #endregion Constructors (2)
-
-        #region Methods (3)
-
-        /// <inheriteddoc />
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            throw new NotImplementedException();
-        }
+        #region Methods (1)
 
         /// <inheriteddoc />
         public MessageBase Clone()
@@ -73,12 +54,6 @@ namespace MarcelJoachimKloubert.Messages
             return (MessageBase)MemberwiseClone();
         }
 
-        /// <inheriteddoc />
-        object ICloneable.Clone()
-        {
-            return Clone();
-        }
-
-        #endregion Methods (3)
+        #endregion Methods (1)
     }
 }

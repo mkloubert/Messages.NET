@@ -39,7 +39,7 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class MessageHandlerContext : MarshalByRefObject, IMessageHandlerContext
+        internal class MessageHandlerContext : IMessageHandlerContext
         {
             #region Fields (3)
 
@@ -92,8 +92,8 @@ namespace MarcelJoachimKloubert.Messages
 
             protected internal Type CreateProxyForInterface(Type interfaceType)
             {
-                var msgInterfaceAttribs = interfaceType.GetCustomAttributes(typeof(MessageInstanceAttribute), false)
-                                                       .Cast<MessageInstanceAttribute>()
+                var msgInterfaceAttribs = interfaceType.GetTypeInfo()
+                                                       .GetCustomAttributes<MessageInstanceAttribute>(inherit: false)
                                                        .ToArray();
 
                 if (msgInterfaceAttribs.Length > 0)
@@ -129,6 +129,7 @@ namespace MarcelJoachimKloubert.Messages
 
                         var propertyName = property.Name;
                         var propertyType = property.PropertyType;
+                        var propertyTypeInfo = propertyType.GetTypeInfo();
 
                         var propertyBuilder = typeBuilder.DefineProperty(propertyName,
                                                                          PropertyAttributes.None,
@@ -193,7 +194,7 @@ namespace MarcelJoachimKloubert.Messages
                             propertyBuilder.SetSetMethod(methodBuilder);
                         }
 
-                        if (propertyType.IsSerializable)
+                        if (propertyTypeInfo.IsSerializable)
                         {
                             // DataMemberAttribute
                             {
@@ -203,6 +204,7 @@ namespace MarcelJoachimKloubert.Messages
                                 propertyBuilder.SetCustomAttribute(attribBuilder);
                             }
                         }
+                        /*
                         else
                         {
                             // NonSerializedAttribute
@@ -212,7 +214,7 @@ namespace MarcelJoachimKloubert.Messages
 
                                 fieldBuilder.SetCustomAttribute(attribBuilder);
                             }
-                        }
+                        }*/
                     }
                 }
 
@@ -234,6 +236,7 @@ namespace MarcelJoachimKloubert.Messages
                 }
 
                 // .ctor(SerializationInfo, StreamingContext)
+                /*
                 {
                     var constructorParams = new[] { typeof(SerializationInfo), typeof(StreamingContext) };
 
@@ -250,15 +253,15 @@ namespace MarcelJoachimKloubert.Messages
                     ilGen.Emit(OpCodes.Call, baseConstructor);    // call the base constructor
 
                     ilGen.Emit(OpCodes.Ret);    // return nothing
-                }
+                }*/
 
                 // SerializableAttribute
-                {
+                /* {
                     var serializableAttrib = typeof(SerializableAttribute).GetConstructor(Type.EmptyTypes);
                     var attribBuilder = new CustomAttributeBuilder(serializableAttrib, new object[0]);
 
                     typeBuilder.SetCustomAttribute(attribBuilder);
-                }
+                } */
 
                 // DataContractAttribute
                 {
@@ -268,7 +271,8 @@ namespace MarcelJoachimKloubert.Messages
                     typeBuilder.SetCustomAttribute(attribBuilder);
                 }
 
-                return typeBuilder.CreateType();
+                return typeBuilder.CreateTypeInfo()
+                                  .AsType();
             }
 
             protected internal Type GetMessageType<TMsg>()
@@ -283,10 +287,12 @@ namespace MarcelJoachimKloubert.Messages
                         return instanceType;
                     }
 
-                    instanceType = msgType.IsInterface ? CreateProxyForInterface(msgType)
-                                                       : msgType;
+                    var typeInfo = msgType.GetTypeInfo();
 
-                    if (instanceType.IsAbstract)
+                    instanceType = typeInfo.IsInterface ? CreateProxyForInterface(msgType)
+                                                        : msgType;
+
+                    if (typeInfo.IsAbstract)
                     {
                         throw new InvalidOperationException("Cannot use an abstract class as message type!");
                     }
@@ -352,7 +358,7 @@ namespace MarcelJoachimKloubert.Messages
                         {
                             var h = e.Current;
 
-                            h.Method
+                            h.GetMethodInfo()
                              .Invoke(obj: h.Target,
                                      parameters: new object[] { msg });
                         }

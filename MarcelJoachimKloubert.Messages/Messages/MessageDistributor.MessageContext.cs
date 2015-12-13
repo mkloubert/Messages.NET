@@ -33,7 +33,7 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class MessageContext<TMsg> : MarshalByRefObject, IMessageContext<TMsg>, ICloneable
+        internal class MessageContext<TMsg> : IMessageContext<TMsg>
         {
             #region Fields (1)
 
@@ -61,9 +61,9 @@ namespace MarcelJoachimKloubert.Messages
 
             #region Methods (3)
 
-            public object Clone()
+            public MessageContext<TMsg> Clone()
             {
-                return MemberwiseClone();
+                return (MessageContext<TMsg>)MemberwiseClone();
             }
 
             public virtual bool Log(object msg,

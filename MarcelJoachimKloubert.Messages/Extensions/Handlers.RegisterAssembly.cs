@@ -38,31 +38,7 @@ namespace MarcelJoachimKloubert.Extensions
     // RegisterAssembly()
     static partial class MJKMessageExtensionMethods
     {
-        #region Methods (2)
-
-        /// <summary>
-        /// Registers the types of the current assembly.
-        /// </summary>
-        /// <typeparam name="TCfg">Type of the handler configuration.</typeparam>
-        /// <param name="cfg">The handler configuration.</param>
-        /// <param name="directions">The directions.</param>
-        /// <param name="allTypes">
-        /// Register all types (<see langword="true" />) or the types that are marked with
-        /// <see cref="MessageContractAttribute" /> only (<see langword="false" />).
-        /// </param>
-        /// <returns>The instance of <paramref name="cfg" />.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="cfg" /> is <see langword="null" />.
-        /// </exception>
-        public static TCfg RegisterAssembly<TCfg>(this TCfg cfg,
-                                                  MessageDirections directions = MessageDirections.Receive | MessageDirections.Send,
-                                                  bool allTypes = false)
-            where TCfg : IMessageHandlerConfiguration
-        {
-            return RegisterAssembly<TCfg>(cfg: cfg,
-                                          asm: Assembly.GetCallingAssembly(),
-                                          directions: directions, allTypes: allTypes);
-        }
+        #region Methods (1)
 
         /// <summary>
         /// Registers the types of an assembly.
@@ -94,7 +70,8 @@ namespace MarcelJoachimKloubert.Extensions
                 IEnumerable<Type> typesToRegister = asm.GetTypes();
                 if (!allTypes)
                 {
-                    typesToRegister = typesToRegister.Where(x => x.GetCustomAttributes(typeof(MessageContractAttribute), false)
+                    typesToRegister = typesToRegister.Where(x => x.GetTypeInfo()
+                                                                  .GetCustomAttributes<MessageContractAttribute>(inherit: false)
                                                                   .Any());
                 }
 
@@ -120,6 +97,6 @@ namespace MarcelJoachimKloubert.Extensions
             return cfg;
         }
 
-        #endregion Methods (2)
+        #endregion Methods (1)
     }
 }
