@@ -114,17 +114,37 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions\Handlers.ClearSubscriptions.cs" />
+    <Compile Include="Extensions\Handlers.ClearSubscriptions.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.GetMessageTypes.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.Unsubscribe.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
     <Compile Include="Extensions\Handlers.cs" />
-    <Compile Include="Extensions\Handlers.GetMessageTypes.cs" />
-    <Compile Include="Extensions\Handlers.RegisterAssembly.cs" />
-    <Compile Include="Extensions\Handlers.RegisterFor.cs" />
-    <Compile Include="Extensions\Handlers.RegisterForReceive.cs" />
-    <Compile Include="Extensions\Handlers.RegisterForSend.cs" />
-    <Compile Include="Extensions\Handlers.RegisterTo.cs" />
-    <Compile Include="Extensions\Handlers.Subscribe.cs" />
-    <Compile Include="Extensions\Handlers.Unsubscribe.cs" />
-    <Compile Include="Extensions\Handlers.UnsubscribeAll.cs" />
+    <Compile Include="Extensions\Handlers.RegisterFor.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.RegisterAssembly.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.RegisterForReceive.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.RegisterForSend.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.RegisterTo.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.Subscribe.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\Handlers.UnsubscribeAll.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
     <Compile Include="Extensions\_Extensions.cs" />
     <Compile Include="Messages\IMessageContext.cs" />
     <Compile Include="Messages\IMessageHandler.cs" />
@@ -137,14 +157,28 @@
     <Compile Include="Messages\MessageBase.cs" />
     <Compile Include="Messages\MessageContractAttribute.cs" />
     <Compile Include="Messages\MessageDirections.cs" />
-    <Compile Include="Messages\MessageDistributor.AggregateMessageHandlerConfiguration.cs" />
+    <Compile Include="Messages\MessageDistributor.AggregateMessageHandlerConfiguration.cs">
+      <DependentUpon>MessageDistributor.cs</DependentUpon>
+    </Compile>
     <Compile Include="Messages\MessageDistributor.cs" />
-    <Compile Include="Messages\MessageDistributor.MessageContext.cs" />
-    <Compile Include="Messages\MessageDistributor.MessageHandlerConfiguration.cs" />
-    <Compile Include="Messages\MessageDistributor.MessageHandlerContext.cs" />
-    <Compile Include="Messages\MessageDistributor.MessageLogEntry.cs" />
-    <Compile Include="Messages\MessageDistributor.NewMessageContext.cs" />
-    <Compile Include="Messages\MessageDistributor.NewMessageLogEntry.cs" />
+    <Compile Include="Messages\MessageDistributor.MessageContext.cs">
+      <DependentUpon>MessageDistributor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Messages\MessageDistributor.MessageHandlerConfiguration.cs">
+      <DependentUpon>MessageDistributor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Messages\MessageDistributor.MessageHandlerContext.cs">
+      <DependentUpon>MessageDistributor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Messages\MessageDistributor.MessageLogEntry.cs">
+      <DependentUpon>MessageDistributor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Messages\MessageDistributor.NewMessageContext.cs">
+      <DependentUpon>MessageDistributor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Messages\MessageDistributor.NewMessageLogEntry.cs">
+      <DependentUpon>MessageDistributor.cs</DependentUpon>
+    </Compile>
     <Compile Include="Messages\MessageHandlerBase.cs" />
     <Compile Include="Messages\MessageInstanceAttribute.cs" />
     <Compile Include="Messages\MessageLogCategory.cs" />
