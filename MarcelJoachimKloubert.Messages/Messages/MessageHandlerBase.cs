@@ -70,7 +70,7 @@ namespace MarcelJoachimKloubert.Messages
         /// <summary>
         /// Gets the object for thread safe operations.
         /// </summary>
-        public virtual object SyncRoot { get; private set; }
+        public virtual object SyncRoot { get; }
 
         /// <summary>
         /// Gets or sets an object that should be linked with that instance.

@@ -45,10 +45,7 @@ namespace MarcelJoachimKloubert.Messages
 
             public DateTimeOffset CreationTime { get; set; }
 
-            internal MessageDistributor Distributor
-            {
-                get { return Config.Distributor; }
-            }
+            internal MessageDistributor Distributor => Config.Distributor;
 
             public Guid Id { get; set; }
 
@@ -56,10 +53,7 @@ namespace MarcelJoachimKloubert.Messages
 
             public DateTimeOffset? SendTime { get; set; }
 
-            DateTimeOffset IMessageContext<TMsg>.SendTime
-            {
-                get { return SendTime.Value; }
-            }
+            DateTimeOffset IMessageContext<TMsg>.SendTime => SendTime.Value;
 
             public object Tag { get; set; }
 

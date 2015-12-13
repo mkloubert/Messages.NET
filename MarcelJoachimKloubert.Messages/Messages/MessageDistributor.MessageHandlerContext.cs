@@ -104,10 +104,7 @@ namespace MarcelJoachimKloubert.Messages
 
                 var baseType = typeof(MessageBase);
 
-                var typeBuilder = ModuleBuilder.DefineType(string.Format("MJKImplOf_{0}_{1:N}_{2}_Proxy",
-                                                                         interfaceType.Name,
-                                                                         Guid.NewGuid(),
-                                                                         ModuleBuilder.GetHashCode()),
+                var typeBuilder = ModuleBuilder.DefineType($"MJKImplOf_{interfaceType.Name}_{Guid.NewGuid():N}_{ModuleBuilder.GetHashCode()}_Proxy",
                                                            TypeAttributes.Public | TypeAttributes.Class,
                                                            baseType);
 
@@ -381,7 +378,7 @@ namespace MarcelJoachimKloubert.Messages
                 {
                     if (handler == null)
                     {
-                        throw new ArgumentNullException("handler");
+                        throw new ArgumentNullException(nameof(handler));
                     }
 
                     var msgType = typeof(TMsg);

@@ -52,10 +52,7 @@ namespace MarcelJoachimKloubert.Messages
         #region Properties (1)
 
         /// <inheriteddoc />
-        public new INewMessageLogEntry Log
-        {
-            get { return (INewMessageLogEntry)base.Log; }
-        }
+        public new INewMessageLogEntry Log => (INewMessageLogEntry)base.Log;
 
         #endregion Properties (1)
     }

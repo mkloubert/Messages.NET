@@ -42,10 +42,7 @@ namespace MarcelJoachimKloubert.Messages
                 internal set { base.Message = value; }
             }
 
-            INewMessageContext<object> INewMessageLogEntry.Message
-            {
-                get { return (INewMessageContext<object>)Message; }
-            }
+            INewMessageContext<object> INewMessageLogEntry.Message => (INewMessageContext<object>)Message;
 
             #endregion Properties (2)
         }

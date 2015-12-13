@@ -105,10 +105,7 @@ namespace MarcelJoachimKloubert.Messages
         /// <summary>
         /// Returns the current time.
         /// </summary>
-        public DateTimeOffset Now
-        {
-            get { return (TimeProvider ?? GetNow)(); }
-        }
+        public DateTimeOffset Now => (TimeProvider ?? GetNow)();
 
         /// <summary>
         /// Gets the object for thread safe operations.
@@ -267,12 +264,12 @@ namespace MarcelJoachimKloubert.Messages
         {
             if (handler == null)
             {
-                throw new ArgumentNullException("handler");
+                throw new ArgumentNullException(nameof(handler));
             }
 
             if (log == null)
             {
-                throw new ArgumentNullException("log");
+                throw new ArgumentNullException(nameof(log));
             }
 
             var eventHandler = MessageLogReceived;
@@ -299,12 +296,12 @@ namespace MarcelJoachimKloubert.Messages
         {
             if (handler == null)
             {
-                throw new ArgumentNullException("handler");
+                throw new ArgumentNullException(nameof(handler));
             }
 
             if (log == null)
             {
-                throw new ArgumentNullException("log");
+                throw new ArgumentNullException(nameof(log));
             }
 
             var eventHandler = NewMessageLogReceived;
@@ -331,7 +328,7 @@ namespace MarcelJoachimKloubert.Messages
             {
                 if (handler == null)
                 {
-                    throw new ArgumentNullException("handler");
+                    throw new ArgumentNullException(nameof(handler));
                 }
 
                 ThrowIfDisposed();

@@ -61,7 +61,7 @@ namespace MarcelJoachimKloubert.Messages
 
             public bool OwnsHandler { get; set; }
 
-            internal object SyncRoot { get; private set; }
+            internal object SyncRoot { get; }
 
             #endregion Properties (2)
 
@@ -78,7 +78,7 @@ namespace MarcelJoachimKloubert.Messages
                 {
                     if (msgType == null)
                     {
-                        throw new ArgumentNullException("msgType");
+                        throw new ArgumentNullException(nameof(msgType));
                     }
 
                     RECEIVE_TYPES.Add(msgType);
@@ -97,7 +97,7 @@ namespace MarcelJoachimKloubert.Messages
                 {
                     if (msgType == null)
                     {
-                        throw new ArgumentNullException("msgType");
+                        throw new ArgumentNullException(nameof(msgType));
                     }
 
                     SEND_TYPES.Add(msgType);
