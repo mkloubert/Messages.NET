@@ -49,6 +49,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\Handlers.StartTimer.cs">
+      <DependentUpon>Handlers.cs</DependentUpon>
+    </Compile>
     <Compile Include="Extensions\Handlers.ClearSubscriptions.cs">
       <DependentUpon>Handlers.cs</DependentUpon>
     </Compile>
