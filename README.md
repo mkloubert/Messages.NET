@@ -6,8 +6,8 @@ A C# library for sending data via contracts between systems.
 
 | Name  | Targets on  |
 | ----- | ----------- |
-| master (current)  | C# 4.0, .NET 4.0, Mono  |
-| [CSharp6](https://github.com/mkloubert/Messages.NET/tree/CSharp6)  | C# 6.0, .NET 4.6  |
+| [master](https://github.com/mkloubert/Messages.NET)  | C# 4.0, .NET 4.0, Mono  |
+| CSharp6 (current)  | C# 6.0, .NET 4.6  |
 | [NetCore5](https://github.com/mkloubert/Messages.NET/tree/NetCore5)  | C# 6.0, .NET Core 5  |
 
 ## Examples
