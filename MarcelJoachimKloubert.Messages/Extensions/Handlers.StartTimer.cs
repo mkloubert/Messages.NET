@@ -101,7 +101,7 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (action == null)
             {
-                throw new ArgumentNullException("action");
+                throw new ArgumentNullException(nameof(action));
             }
 
             return StartTimer(handler: handler,
@@ -248,17 +248,17 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (handler == null)
             {
-                throw new ArgumentNullException("handler");
+                throw new ArgumentNullException(nameof(handler));
             }
 
             if (action == null)
             {
-                throw new ArgumentNullException("action");
+                throw new ArgumentNullException(nameof(action));
             }
 
             if (actionStateProvider == null)
             {
-                throw new ArgumentNullException("actionStateProvider");
+                throw new ArgumentNullException(nameof(actionStateProvider));
             }
 
             if (!periodTime.HasValue)
