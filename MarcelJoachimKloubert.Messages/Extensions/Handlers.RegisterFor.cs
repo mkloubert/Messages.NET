@@ -52,7 +52,7 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (cfg == null)
             {
-                throw new ArgumentNullException("cfg");
+                throw new ArgumentNullException(nameof(cfg));
             }
 
             if (directions.HasFlag(MessageDirections.Receive))
@@ -84,12 +84,12 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (cfg == null)
             {
-                throw new ArgumentNullException("cfg");
+                throw new ArgumentNullException(nameof(cfg));
             }
 
             if (msgType == null)
             {
-                throw new ArgumentNullException("msgType");
+                throw new ArgumentNullException(nameof(msgType));
             }
 
             if (directions.HasFlag(MessageDirections.Receive))

@@ -51,7 +51,7 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (ctx == null)
             {
-                throw new ArgumentNullException("ctx");
+                throw new ArgumentNullException(nameof(ctx));
             }
 
             return ctx.GetSubscriptions()

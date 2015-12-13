@@ -53,12 +53,12 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (ctx == null)
             {
-                throw new ArgumentNullException("ctx");
+                throw new ArgumentNullException(nameof(ctx));
             }
 
             if (noContextHandler == null)
             {
-                throw new ArgumentNullException("noContextHandler");
+                throw new ArgumentNullException(nameof(noContextHandler));
             }
 
             Action<IMessageContext<TMsg>> result = (msgCtx) => noContextHandler(msgCtx.Message);
@@ -84,7 +84,7 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (noContextHandler == null)
             {
-                throw new ArgumentNullException("noContextHandler");
+                throw new ArgumentNullException(nameof(noContextHandler));
             }
 
             Action<IMessageContext<object>> result = (msgCtx) => noContextHandler(msgCtx.Message);
@@ -105,17 +105,17 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (ctx == null)
             {
-                throw new ArgumentNullException("ctx");
+                throw new ArgumentNullException(nameof(ctx));
             }
 
             if (msgType == null)
             {
-                throw new ArgumentNullException("msgType");
+                throw new ArgumentNullException(nameof(msgType));
             }
 
             if (handler == null)
             {
-                throw new ArgumentNullException("handler");
+                throw new ArgumentNullException(nameof(handler));
             }
 
             var sm = GetHandlerContextMethod<TCtx>(() => ctx.Subscribe<object>(handler, MessageThreadOption.Current)).MakeGenericMethod(msgType);

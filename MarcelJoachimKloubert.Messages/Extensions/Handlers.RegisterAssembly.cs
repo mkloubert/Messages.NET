@@ -86,7 +86,7 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (cfg == null)
             {
-                throw new ArgumentNullException("cfg");
+                throw new ArgumentNullException(nameof(cfg));
             }
 
             if (asm != null)

@@ -52,7 +52,7 @@ namespace MarcelJoachimKloubert.Extensions
         {
             if (ctx == null)
             {
-                throw new ArgumentNullException("ctx");
+                throw new ArgumentNullException(nameof(ctx));
             }
 
             using (var e = ctx.GetSubscriptions().Select(x => x.Key).GetEnumerator())
