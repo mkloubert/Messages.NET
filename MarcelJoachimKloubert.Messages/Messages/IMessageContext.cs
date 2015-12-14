@@ -37,7 +37,7 @@ namespace MarcelJoachimKloubert.Messages
     /// <typeparam name="TMsg">Type of the message.</typeparam>
     public interface IMessageContext<out TMsg> : IMessageLogger
     {
-        #region Properties (5)
+        #region Properties (6)
 
         /// <summary>
         /// Gets the time the message has been created.
@@ -55,6 +55,11 @@ namespace MarcelJoachimKloubert.Messages
         TMsg Message { get; }
 
         /// <summary>
+        /// Gets the type of <see cref="IMessageContext{TMsg}.Message" /> object.
+        /// </summary>
+        Type MessageType { get; }
+
+        /// <summary>
         /// Gets the time the message has been send.
         /// </summary>
         DateTimeOffset SendTime { get; }
@@ -64,6 +69,6 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         object Tag { get; set; }
 
-        #endregion Properties (5)
+        #endregion Properties (6)
     }
 }

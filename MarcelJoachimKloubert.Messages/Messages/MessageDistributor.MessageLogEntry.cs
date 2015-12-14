@@ -35,7 +35,7 @@ namespace MarcelJoachimKloubert.Messages
     {
         internal class MessageLogEntry<TMsg> : IMessageLogEntry
         {
-            #region Properties (10)
+            #region Properties (9)
 
             public MessageLogCategory Category { get; internal set; }
 
@@ -47,15 +47,7 @@ namespace MarcelJoachimKloubert.Messages
 
             public IMessageContext<TMsg> Message { get; internal set; }
 
-            IMessageContext<object> IMessageLogEntry.Message
-            {
-                get { return (IMessageContext<object>)Message; }
-            }
-
-            public Type MessageType
-            {
-                get { return typeof(TMsg); }
-            }
+            IMessageContext<object> IMessageLogEntry.Message => (IMessageContext<object>)Message;
 
             public MessageLogPriority Priority { get; internal set; }
 
@@ -63,7 +55,7 @@ namespace MarcelJoachimKloubert.Messages
 
             public DateTimeOffset Time { get; internal set; }
 
-            #endregion Properties (10)
+            #endregion Properties (9)
         }
     }
 }

@@ -87,7 +87,7 @@ namespace MarcelJoachimKloubert.Messages
                 }
             }
 
-            public void Send()
+            public bool Send()
             {
                 lock (SYNC_ROOT)
                 {
@@ -103,7 +103,7 @@ namespace MarcelJoachimKloubert.Messages
                         if (!Config.SEND_TYPES.Contains(typeof(TMsg)))
                         {
                             // not configured to send that message type
-                            return;
+                            return true;
                         }
                     }
 
@@ -117,12 +117,18 @@ namespace MarcelJoachimKloubert.Messages
 
                     var occuredExceptions = new List<Exception>();
 
+                    bool? allFailed = null;
                     try
                     {
                         using (var e = otherHandlers.GetEnumerator())
                         {
                             while (e.MoveNext())
                             {
+                                if (!allFailed.HasValue)
+                                {
+                                    allFailed = true;
+                                }
+
                                 var ctx = e.Current;
 
                                 try
@@ -131,6 +137,8 @@ namespace MarcelJoachimKloubert.Messages
                                     msg.SendTime = now;
 
                                     ctx.Receive(msg);
+
+                                    allFailed = false;
                                 }
                                 catch (Exception ex)
                                 {
@@ -148,9 +156,10 @@ namespace MarcelJoachimKloubert.Messages
                         SendTime = now;
                     }
 
-                    if (occuredExceptions.Count < 1)
+                    if (!allFailed.HasValue ||
+                        occuredExceptions.Count < 1)
                     {
-                        return;
+                        return true;
                     }
 
                     var exceptionToThrow = new AggregateException(occuredExceptions);
@@ -158,6 +167,8 @@ namespace MarcelJoachimKloubert.Messages
                     {
                         throw exceptionToThrow;
                     }
+
+                    return !allFailed.Value;
                 }
             }
 

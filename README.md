@@ -12,176 +12,142 @@ A C# library for sending data via contracts between systems.
 
 ## Examples
 
-### New contact
+### Address book
 
-First of all, you have to define a message contract:
+The example shows how you can synchronize contact data between two address books, like Outlook and Thunderbird.
+
+First of all define a contract that stores data of a new contact entry.
 
 ```csharp
-public interface INewContact
-{
+public interface INewContact {
+    string Email { get; set; }
+    
     string Firstname { get; set; }
 
     string Lastname { get; set; }
 }
 ```
 
-Now you should define a message handler that sends the message:
+Now we should start with the implementation of the address books:
+
+At the beginning we define a base class:
 
 ```csharp
-public class NewContactSender : MessageHandlerBase
-{
-    public void CreateContact(string firstName, string lastName)
-    {
-        // create a new instance of "INewContact"
-        // that is wrapped into a context object
-        //
-        // the new "INewContact" instance is stored
-        // in "Message" property
-        var newMsgCtx = Context.CreateMessage<INewContact>();
-        newMsgCtx.Message.Firstname = firstname;
-        newMsgCtx.Message.Lastname = lastName;
+abstract class AddressBook : MessageHandlerBase {
+    // create a new contact in that address book
+    // and send it to the other address books
+    public abstract void CreateContact(string firstName, string lastName,
+                                       string email);
+                          
+    // receive a new contact from another address book             
+    [ReceiveMessage]
+    protected abstract void ReceiveNewContact(INewContact contact);
+}
+```
+
+The next steps are to create implementations for `Outlook`
+
+```csharp
+class OutlookAddressBook : AddressBook {
+    public override void CreateContact(string firstName, string lastName,
+                                       string email) {
+                                       
+        // 1. create entry in Outlook
+        // ...
         
-        newMsgCtx.Send();
+        // 2. send new contact to the other address books (Thunderbird in that case)
+        {
+            var newMsg = Context.CreateMessage<INewContact>();
+        
+            // the "INewContact" object is stored
+            // in "Message" property of "newMsg" object
+            var newContact = newMsg.Message;
+            newContact.Firstname = firstName;
+            newContact.Lastname = lastName;
+            newContact.Email = email;
+            
+            // send message to other
+            // address books
+            newMsg.Send();
+        }
+    }           
+    
+    protected override void ReceiveNewContact(INewContact contact) {
+        // 1. create new entry in Outlook
     }
 }
 ```
 
-The next step is to define a message handler that receives a message:
+and `Thunderbird`:
 
 ```csharp
-public class NewContactReceiver : MessageHandlerBase
-{
-    protected void HandleNewContact(IMessageContext<INewContact> msg)
-    {
-        // the "INewContact" object is wrapped
-        // and stored in "Message" property
-    
-        Console.WriteLine("Lastname: {0}, Firstname: {1}",
-                          msg.Message.Lastname, msg.Message.Firstname);
+class ThunderbirdAddressBook : AddressBook {
+    public override void CreateContact(string firstName, string lastName,
+                                       string email) {
+        // do the same thing as in "OutlookAddressBook"
+        // for Thunderbird
     }
     
-    protected override void OnContextUpdated(IMessageHandlerContext oldCtx, IMessageHandlerContext newCtx)
-    {
-        base.OnContextUpdated(oldCtx, newCtx);
-
-        // subscribe "HandleNewContact" for receiving
-        // "INewContact" objects
-        newCtx.Subscribe<INewContact>(HandleNewContact);
+    protected override void ReceiveNewContact(INewContact contact) {
+        // do the same thing as in "OutlookAddressBook"
+        // for Thunderbird
     }
 }
 ```
 
-The class `MessageDistributor` helps you to send messages between handlers:
+Create and set up an instance of `MessageDistributor` class for sharing new contact data between Outlook and Thunderbird:
 
 ```csharp
-var sender = new NewContactSender();
-var receiver = new NewContactReceiver();
+var outlook = new OutlookAddressBook();
+var thunderbird = new ThunderbirdAddressBook();
 
 var distributor = new MessageDistributor();
 
-// register the "sender" in "distributor"
-// and configure it for sending
-var senderCfg = distributor.RegisterHandler(sender);
-senderCfg.RegisterForSend<INewContact>();
+// register and set up Outlook
+distributor.RegisterHandler(outlook)
+           .RegisterForSend<INewContact>()
+           .RegisterForReceive<INewContact>();
 
-// register the "receiver" in "distributor"
-// and configure it for receiving
-var receiverCfg = distributor.RegisterHandler(receiver);
-receiverCfg.RegisterForReceive<INewContact>();
-
-// now create a new "INewContact" instance
-// and send it to "receiver"
-sender.CreateContact("Marcel", "Kloubert");
+// register and set up Thunderbird           
+distributor.RegisterHandler(thunderbird)
+           .RegisterForSend<INewContact>()
+           .RegisterForReceive<INewContact>();
 ```
 
-Keep in mind, that it does not make sense to define other things as properties in interface based contracts, because the `MessageDistributor` will create dynamic proxy classes by default.
-
-If you want to define other things like methods, e.g., you have to define a non-abstract/-static class as contract or define an own proxy class. 
-
-#### The attribute way
-
-Instead of calling `Subscribe` method in an `MessageHandlerBase` object, you can use the `ReceiveMessageAttribute` to do this.
-
-This makes your receiver class much more compact:
+Now lets share new contacts (from Outlook to Thunderbird):
 
 ```csharp
-public class NewContactReceiver : MessageHandlerBase
-{
-    [ReceiveMessage(typeof(INewContact))]
-    protected void HandleNewContact(IMessageContext<INewContact> msg)
-    {
-        // ...
-    }
-}
+// create a new contact in Outlook
+// and send it to Thunderbird
+outlook.CreateContact("Marcel", "Kloubert",
+                      "marcel.kloubert@gmx.net");
 ```
 
-Or shorter (without type argument):
+Or use the other direction (from Thunderbird to Outlook):
 
 ```csharp
-public class NewContactReceiver : MessageHandlerBase
-{
-    [ReceiveMessage]
-    protected void HandleNewContact(IMessageContext<INewContact> msg)
-    {
-         // ...
-    }
-}
+thunderbird.CreateContact("Marcel", "Kloubert",
+                          "marcel.kloubert@gmx.net");
 ```
 
-#### Own proxy class
+And that's all you need to do to share data!
 
-If you want to define an own proxy class for a contract, you can use `MessageInstanceAttribute` for that.
+If you need an additional address book system, simply create an object based on `AddressBook` class and register it to the `MessageDistributor` object the same way as in that example.
 
-First define the proxy class:
+#### Receiving messages
 
-```csharp
-public class NewContact : INewContact
-{
-    public string Firstname { get; set; }
+##### Run in background
 
-    public string Lastname { get; set; }
-}
-```
-
-Then mark the contract with the attribute:
+If you want to receive and handle new contacts in background, you can use the `ThreadOption` property of `ReceiveMessageAttribute` class:
 
 ```csharp
-[MessageInstance(typeof(NewContact))]
-public interface INewContact
-{
-    string Firstname { get; set; }
-
-    string Lastname { get; set; }
-}
-```
-
-#### Receive messages in background
-
-By default any member that receives a message is executed in the current thread.
-
-You can setup the `ReceiveMessageAttribute` by setting its `ThreadOption` property if you want to execute the underlying member in a background thread / task, e.g.:
-
-```csharp
-public class NewContactReceiver : MessageHandlerBase
-{
-    [ReceiveMessage(ThreadOption = MessageThreadOption.Background)]
-    protected void HandleNewContact(IMessageContext<INewContact> msg)
-    {
-         // ...
-    }
-}
-```
-
-Or shorter:
-
-```csharp
-public class NewContactReceiver : MessageHandlerBase
-{
+abstract class AddressBook extends MessageHandlerBase {
+    // ...
+                          
+    // the constructor sets the "ThreadOption"
+    // with the "MessageThreadOption.Background" value
+    // to handle received "INewContact" object in background
     [ReceiveMessage(MessageThreadOption.Background)]
-    protected void HandleNewContact(IMessageContext<INewContact> msg)
-    {
-         // ...
-    }
+    protected abstract void ReceiveNewContact(INewContact contact);
 }
 ```
-

@@ -49,10 +49,11 @@ namespace MarcelJoachimKloubert.Messages
         /// <summary>
         /// Sends the message.
         /// </summary>
+        /// <returns>Operation was successfull or not.</returns>
         /// <exception cref="InvalidOperationException">
         /// Cannot resend message.
         /// </exception>
-        void Send();
+        bool Send();
 
         #endregion Methods (1)
     }
