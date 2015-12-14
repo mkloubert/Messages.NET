@@ -47,10 +47,7 @@ namespace MarcelJoachimKloubert.Messages
 
             public IMessageContext<TMsg> Message { get; internal set; }
 
-            IMessageContext<object> IMessageLogEntry.Message
-            {
-                get { return (IMessageContext<object>)Message; }
-            }
+            IMessageContext<object> IMessageLogEntry.Message => (IMessageContext<object>)Message;
 
             public MessageLogPriority Priority { get; internal set; }
 
