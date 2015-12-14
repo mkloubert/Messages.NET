@@ -47,6 +47,7 @@ namespace MarcelJoachimKloubert.Messages
         public SendingMessageFailedEventArgs(IMessageHandler sender, IMessageContext<object> msg, Exception ex)
         {
             Exception = new MessageHandlerException(sender, ex);
+            Message = msg;
         }
 
         #endregion Constructors (1)
