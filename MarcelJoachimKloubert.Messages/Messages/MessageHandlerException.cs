@@ -28,80 +28,45 @@
  **********************************************************************************************************************/
 
 using System;
+using System.Runtime.Serialization;
 
 namespace MarcelJoachimKloubert.Messages
 {
-    partial class MessageDistributor
+    /// <summary>
+    /// An exception that was throw by an <see cref="IMessageHandler" /> object.
+    /// </summary>
+    public class MessageHandlerException : Exception
     {
-        internal class MessageContext<TMsg> : MarshalByRefObject, IMessageContext<TMsg>, ICloneable
+        #region Constructors (2)
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MessageHandlerException" /> class.
+        /// </summary>
+        /// <param name="handler">The value for the <see cref="MessageHandlerException.Handler" /> property.</param>
+        /// <param name="innerException">The value for the <see cref="Exception.InnerException" /> property.</param>
+        public MessageHandlerException(IMessageHandler handler, Exception innerException)
+            : base(message: innerException != null ? innerException.Message : null,
+                   innerException: innerException)
         {
-            #region Fields (2)
-
-            internal MessageHandlerConfiguration Config;
-            internal object SYNC_ROOT = new object();
-
-            #endregion Fields (2)
-
-            #region Properties (7)
-
-            public DateTimeOffset CreationTime { get; set; }
-
-            internal MessageDistributor Distributor => Config.Distributor;
-
-            public Guid Id { get; set; }
-
-            public TMsg Message { get; set; }
-
-            public DateTimeOffset? SendTime { get; set; }
-
-            DateTimeOffset IMessageContext<TMsg>.SendTime => SendTime.Value;
-
-            public object Tag { get; set; }
-
-            #endregion Properties (7)
-
-            #region Methods (3)
-
-            public object Clone()
-            {
-                return MemberwiseClone();
-            }
-
-            public virtual bool Log(object msg,
-                                    MessageLogCategory category = MessageLogCategory.Info, MessageLogPriority prio = MessageLogPriority.None,
-                                    string tag = null)
-            {
-                try
-                {
-                    var now = Distributor.Now;
-
-                    var log = new MessageLogEntry<TMsg>()
-                    {
-                        Category = category,
-                        Handler = Config.Handler,
-                        Id = Guid.NewGuid(),
-                        LogMessage = now,
-                        Message = this,
-                        Priority = prio,
-                        Tag = ParseLogTag(tag),
-                        Time = now,
-                    };
-
-                    Distributor.RaiseMessageLogReceived(Config.Handler, log);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            protected internal static string ParseLogTag(string tag)
-            {
-                return string.IsNullOrWhiteSpace(tag) ? null : tag.ToUpper().Trim();
-            }
-
-            #endregion Methods (3)
+            Handler = handler;
         }
+
+        /// <inheriteddoc />
+        protected MessageHandlerException(SerializationInfo info, StreamingContext context)
+            : base(info: info,
+                   context: context)
+        {
+        }
+
+        #endregion Constructors (2)
+
+        #region Properties (1)
+
+        /// <summary>
+        /// Gets the underlying handler.
+        /// </summary>
+        public IMessageHandler Handler { get; private set; }
+
+        #endregion Properties (1)
     }
 }
