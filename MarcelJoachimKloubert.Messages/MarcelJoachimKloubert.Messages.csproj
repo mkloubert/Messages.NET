@@ -114,10 +114,16 @@
     <Compile Include="Messages\MessageDistributor.MessageLogEntry.cs">
       <DependentUpon>MessageDistributor.cs</DependentUpon>
     </Compile>
+    <Compile Include="Messages\MessageDistributor.MessageType.cs">
+      <DependentUpon>MessageDistributor.cs</DependentUpon>
+    </Compile>
     <Compile Include="Messages\MessageDistributor.NewMessageContext.cs">
       <DependentUpon>MessageDistributor.cs</DependentUpon>
     </Compile>
     <Compile Include="Messages\MessageDistributor.NewMessageLogEntry.cs">
+      <DependentUpon>MessageDistributor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Messages\MessageDistributor.MessageTypeSubscription.cs">
       <DependentUpon>MessageDistributor.cs</DependentUpon>
     </Compile>
     <Compile Include="Messages\MessageHandlerBase.cs" />

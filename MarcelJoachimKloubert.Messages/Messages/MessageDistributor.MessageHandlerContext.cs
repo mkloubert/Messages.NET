@@ -43,9 +43,9 @@ namespace MarcelJoachimKloubert.Messages
         {
             #region Fields (3)
 
-            internal readonly IDictionary<Type, ICollection<IList<Delegate>>> SUBSCRIPTIONS = new Dictionary<Type, ICollection<IList<Delegate>>>();
-
             internal MessageHandlerConfiguration Config;
+
+            internal readonly ICollection<MessageType> MESSAGE_TYPES = new HashSet<MessageType>();
 
             internal ModuleBuilder ModuleBuilder;
 
@@ -70,7 +70,7 @@ namespace MarcelJoachimKloubert.Messages
 
             #endregion Properties (3)
 
-            #region Methods (10)
+            #region Methods (11)
 
             public INewMessageContext<TMsg> CreateMessage<TMsg>()
             {
@@ -298,8 +298,10 @@ namespace MarcelJoachimKloubert.Messages
                 Dictionary<Type, IEnumerable<Delegate>> result;
                 lock (SyncRoot)
                 {
-                    result = SUBSCRIPTIONS.ToDictionary(keySelector: (x) => x.Key,
-                                                        elementSelector: (x) => (IEnumerable<Delegate>)x.Value.ToList());
+                    result = MESSAGE_TYPES.ToDictionary(keySelector: x => x.KEY,
+                                                        elementSelector: x => (IEnumerable<Delegate>)x.SUBSCRIPTIONS
+                                                                                                      .Select(y => y.KEY)
+                                                                                                      .ToList());
                 }
 
                 return result;
@@ -320,15 +322,13 @@ namespace MarcelJoachimKloubert.Messages
                     return null;
                 }
 
-                ICollection<IList<Delegate>> subscriberActions;
+                MessageType msgType;
                 lock (SyncRoot)
                 {
-                    var msgType = typeof(TMsg);
-
-                    SUBSCRIPTIONS.TryGetValue(msgType, out subscriberActions);
+                    msgType = TryFindMessageType(typeof(TMsg));
                 }
 
-                if (subscriberActions == null)
+                if (msgType == null)
                 {
                     return false;
                 }
@@ -349,21 +349,18 @@ namespace MarcelJoachimKloubert.Messages
 
                 var occuredExceptions = new List<Exception>();
 
-                using (var e = subscriberActions.GetEnumerator())
+                using (var e = msgType.SUBSCRIPTIONS.GetEnumerator())
                 {
                     while (e.MoveNext())
                     {
                         try
                         {
-                            var h = e.Current[1];
-
-                            h.Method
-                             .Invoke(obj: h.Target,
-                                     parameters: new object[] { msg });
+                            e.Current
+                             .Invoke(msg);
                         }
                         catch (Exception ex)
                         {
-                            occuredExceptions.Add(ex.GetBaseException());
+                            occuredExceptions.Add(ex);
                         }
                     }
                 }
@@ -389,28 +386,31 @@ namespace MarcelJoachimKloubert.Messages
                         throw new ArgumentNullException(nameof(handler));
                     }
 
-                    var msgType = typeof(TMsg);
+                    var mt = typeof(TMsg);
 
-                    ICollection<IList<Delegate>> handlers;
-                    if (!SUBSCRIPTIONS.TryGetValue(msgType, out handlers))
+                    var msgType = TryFindMessageType(mt);
+                    if (msgType == null)
                     {
-                        handlers = new List<IList<Delegate>>();
-                        SUBSCRIPTIONS.Add(msgType, handlers);
+                        msgType = new MessageType(mt);
+                        MESSAGE_TYPES.Add(msgType);
                     }
 
-                    handlers.Add(new List<Delegate>
-                        {
-                            // [0] the handler to use for subscription
-                            handler,
+                    var newSubscription = new MessageTypeSubscription(
+                        msgType: msgType,
+                        key: handler,
+                        action: WrapSubscribeHandler<TMsg>(handler: handler,
+                                                           threadOption: threadOption,
+                                                           isSynchronized: isSynchronized));
 
-                            // [1] the "real" / wrapped handler that is invoked
-                            WrapSubscribeHandler<TMsg>(handler: handler,
-                                                                threadOption: threadOption,
-                                                                isSynchronized: isSynchronized),
-                        });
+                    msgType.SUBSCRIPTIONS.Add(newSubscription);
                 }
 
                 return this;
+            }
+
+            private MessageType TryFindMessageType(Type msgType)
+            {
+                return MESSAGE_TYPES.FirstOrDefault(x => x.Equals(msgType));
             }
 
             public IMessageHandlerContext Unsubscribe<TMsg>(Action<IMessageContext<TMsg>> handler)
@@ -419,15 +419,16 @@ namespace MarcelJoachimKloubert.Messages
                 {
                     if (handler != null)
                     {
-                        var msgType = typeof(TMsg);
-
-                        ICollection<IList<Delegate>> handlerEntries;
-                        if (SUBSCRIPTIONS.TryGetValue(msgType, out handlerEntries))
+                        var msgType = TryFindMessageType(typeof(TMsg));
+                        if (msgType != null)
                         {
-                            IList<Delegate> entry;
-                            while ((entry = handlerEntries.FirstOrDefault(x => x[0].Equals(handler))) != null)
+                            using (var e = msgType.SUBSCRIPTIONS.Where(x => x.Equals(handler)).GetEnumerator())
                             {
-                                handlerEntries.Remove(entry);
+                                while (e.MoveNext())
+                                {
+                                    msgType.SUBSCRIPTIONS
+                                           .Remove(e.Current);
+                                }
                             }
                         }
                     }
@@ -440,7 +441,6 @@ namespace MarcelJoachimKloubert.Messages
             {
                 lock (SyncRoot)
                 {
-                    SUBSCRIPTIONS.Remove(key: typeof(TMsg));
                 }
 
                 return this;
@@ -516,7 +516,7 @@ namespace MarcelJoachimKloubert.Messages
                     };
             }
 
-            #endregion Methods (10)
+            #endregion Methods (11)
         }
     }
 }
