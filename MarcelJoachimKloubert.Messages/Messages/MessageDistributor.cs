@@ -246,7 +246,7 @@ namespace MarcelJoachimKloubert.Messages
                               }
 
                               var @params = x.GetParameters();
-                              if (@params.Length != 2)
+                              if (@params.Length != 3)
                               {
                                   return false;
                               }
@@ -640,7 +640,7 @@ namespace MarcelJoachimKloubert.Messages
                 });
 
             sm.Invoke(obj: ctx,
-                      parameters: new object[] { action, attrib.ThreadOption });
+                      parameters: new object[] { action, attrib.ThreadOption, attrib.IsSynchronized });
         }
 
         private static void SubscribeProperty(MessageHandlerContext ctx, PropertyInfo property, ReceiveMessageAttribute attrib)
