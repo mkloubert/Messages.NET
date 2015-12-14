@@ -118,13 +118,16 @@
       <DependentUpon>MessageDistributor.cs</DependentUpon>
     </Compile>
     <Compile Include="Messages\MessageHandlerBase.cs" />
+    <Compile Include="Messages\MessageHandlerException.cs" />
     <Compile Include="Messages\MessageInstanceAttribute.cs" />
     <Compile Include="Messages\MessageLogCategory.cs" />
     <Compile Include="Messages\MessageLogEventArgs.cs" />
     <Compile Include="Messages\MessageLogPriority.cs" />
+    <Compile Include="Messages\MessageReceivedEventArgs.cs" />
     <Compile Include="Messages\MessageThreadOption.cs" />
     <Compile Include="Messages\NewMessageLogEventArgs.cs" />
     <Compile Include="Messages\ReceiveMessageAttribute.cs" />
+    <Compile Include="Messages\SendingMessageFailedEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

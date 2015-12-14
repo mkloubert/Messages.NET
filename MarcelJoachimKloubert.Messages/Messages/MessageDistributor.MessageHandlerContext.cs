@@ -368,7 +368,11 @@ namespace MarcelJoachimKloubert.Messages
 
                 if (occuredExceptions.Count > 0)
                 {
-                    throw new AggregateException(occuredExceptions);
+                    var exceptionToThrow = new AggregateException(occuredExceptions);
+                    if (!Distributor.RaiseReceivingMessageFailed(Handler, (IMessageContext<object>)msg, exceptionToThrow))
+                    {
+                        throw exceptionToThrow;
+                    }
                 }
 
                 return true;

@@ -27,6 +27,9 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Extensions;
+using System;
+
 namespace MarcelJoachimKloubert.Messages.Tests
 {
     public class TestMessageClass : ITestMessage
@@ -79,6 +82,9 @@ namespace MarcelJoachimKloubert.Messages.Tests
 
             newMsg.Send();
         }
+
+        [ReceiveMessage]
+        public event EventHandler<MessageReceivedEventArgs<ITestMessage>> TestMessageReceived;
     }
 
     internal static class Program
@@ -94,6 +100,23 @@ namespace MarcelJoachimKloubert.Messages.Tests
                 var handler1 = new MyMessageHandler();
                 var handler2 = new MyMessageHandler();
 
+                handler2.TestMessageReceived += (sender, e) =>
+                    {
+                        if (e != null)
+                        {
+                        }
+                    };
+
+                handler1.StartTimer((h, s) =>
+                {
+                }, (h) =>
+                {
+                    return new
+                    {
+                        Now = DateTimeOffset.Now,
+                    };
+                }, TimeSpan.FromSeconds(10));
+
                 var distributor = new MessageDistributor();
 
                 var cfg1 = distributor.RegisterHandler(handler1);
@@ -108,6 +131,9 @@ namespace MarcelJoachimKloubert.Messages.Tests
             {
                 exitCode = 1;
             }
+
+            Console.WriteLine("===== ENTER =====");
+            Console.ReadLine();
 
             return exitCode;
         }
