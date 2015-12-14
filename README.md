@@ -133,3 +133,21 @@ thunderbird.CreateContact("Marcel", "Kloubert",
 And that's all you need to do to share data!
 
 If you need an additional address book system, simply create an object based on `AddressBook` class and register it to the `MessageDistributor` object the same way as in that example.
+
+#### Receiving messages
+
+##### Run in background
+
+If you want to receive and handle new contacts in background, you can use the `ThreadOption` property of `ReceiveMessageAttribute` class:
+
+```csharp
+abstract class AddressBook extends MessageHandlerBase {
+    // ...
+                          
+    // the constructor sets the "ThreadOption"
+    // with the "MessageThreadOption.Background" value
+    // to handle received "INewContact" object in background
+    [ReceiveMessage(MessageThreadOption.Background)]
+    protected abstract void ReceiveNewContact(INewContact contact);
+}
+```
