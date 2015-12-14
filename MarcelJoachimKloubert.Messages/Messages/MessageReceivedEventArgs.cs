@@ -31,77 +31,59 @@ using System;
 
 namespace MarcelJoachimKloubert.Messages
 {
-    partial class MessageDistributor
+    #region CLASS: MessageReceivedEventArgs<TMsg>
+
+    /// <summary>
+    /// Arguments for an event that receives a message.
+    /// </summary>
+    /// <typeparam name="TMsg">Type of the message.</typeparam>
+    public class MessageReceivedEventArgs<TMsg> : EventArgs
     {
-        internal class MessageContext<TMsg> : IMessageContext<TMsg>
+        #region Constructors (1)
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MessageReceivedEventArgs{TMsg}" /> class.
+        /// </summary>
+        /// <param name="msg">The value for the <see cref="MessageReceivedEventArgs{TMsg}.Message" /> property.</param>
+        public MessageReceivedEventArgs(IMessageContext<TMsg> msg)
         {
-            #region Fields (2)
-
-            internal MessageHandlerConfiguration Config;
-            internal object SYNC_ROOT = new object();
-
-            #endregion Fields (2)
-
-            #region Properties (7)
-
-            public DateTimeOffset CreationTime { get; set; }
-
-            internal MessageDistributor Distributor => Config.Distributor;
-
-            public Guid Id { get; set; }
-
-            public TMsg Message { get; set; }
-
-            public DateTimeOffset? SendTime { get; set; }
-
-            DateTimeOffset IMessageContext<TMsg>.SendTime => SendTime.Value;
-
-            public object Tag { get; set; }
-
-            #endregion Properties (7)
-
-            #region Methods (3)
-
-            public MessageContext<TMsg> Clone()
-            {
-                return (MessageContext<TMsg>)MemberwiseClone();
-            }
-
-            public virtual bool Log(object msg,
-                                    MessageLogCategory category = MessageLogCategory.Info, MessageLogPriority prio = MessageLogPriority.None,
-                                    string tag = null)
-            {
-                try
-                {
-                    var now = Distributor.Now;
-
-                    var log = new MessageLogEntry<TMsg>()
-                    {
-                        Category = category,
-                        Handler = Config.Handler,
-                        Id = Guid.NewGuid(),
-                        LogMessage = now,
-                        Message = this,
-                        Priority = prio,
-                        Tag = ParseLogTag(tag),
-                        Time = now,
-                    };
-
-                    Distributor.RaiseMessageLogReceived(Config.Handler, log);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            protected internal static string ParseLogTag(string tag)
-            {
-                return string.IsNullOrWhiteSpace(tag) ? null : tag.ToUpper().Trim();
-            }
-
-            #endregion Methods (3)
+            Message = msg;
         }
+
+        #endregion Constructors (1)
+
+        #region Properties (1)
+
+        /// <summary>
+        /// Gets the received message.
+        /// </summary>
+        public IMessageContext<TMsg> Message { get; }
+
+        #endregion Properties (1)
     }
+
+    #endregion CLASS: MessageReceivedEventArgs<TMsg>
+
+    #region CLASS: MessageReceivedEventArgs
+
+    /// <summary>
+    /// Arguments for an event that receives a message.
+    /// </summary>
+    public class MessageReceivedEventArgs : MessageReceivedEventArgs<object>
+    {
+        #region Constructors (1)
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MessageReceivedEventArgs{TMsg}" /> class.
+        /// </summary>
+        /// <param name="msg">The value for the <see cref="MessageReceivedEventArgs{TMsg}.Message" /> property.</param>
+        public MessageReceivedEventArgs(IMessageContext<object> msg)
+            : base(msg: msg)
+        {
+        }
+
+        #endregion Constructors (1)
+    }
+
+    #endregion CLASS: MessageReceivedEventArgs
 }

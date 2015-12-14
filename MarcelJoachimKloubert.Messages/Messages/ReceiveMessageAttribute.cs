@@ -34,7 +34,7 @@ namespace MarcelJoachimKloubert.Messages
     /// <summary>
     /// Marks a member for receiving a message.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property,
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Event,
                     Inherited = true, AllowMultiple = true)]
     public class ReceiveMessageAttribute : Attribute
     {

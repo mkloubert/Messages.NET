@@ -65,9 +65,7 @@ namespace MarcelJoachimKloubert.Messages
             var asmName = asm.GetName();
 
             var asmBuilder = AssemblyBuilder.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.Run);
-            _MODULE_BUILDER = asmBuilder.DefineDynamicModule(string.Format("MJKDynamicObjectFactoryModule_{0:N}_{1}",
-                                                                           Guid.NewGuid(),
-                                                                           GetHashCode()));
+            _MODULE_BUILDER = asmBuilder.DefineDynamicModule($"MJKDynamicObjectFactoryModule_{Guid.NewGuid():N}_{GetHashCode()}");
         }
 
         /// <summary>
@@ -80,7 +78,7 @@ namespace MarcelJoachimKloubert.Messages
 
         #endregion Constructors (2)
 
-        #region Events (2)
+        #region Events (4)
 
         /// <summary>
         /// Is invoked when a message log entry has been received.
@@ -92,7 +90,17 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         public event EventHandler<NewMessageLogEventArgs> NewMessageLogReceived;
 
-        #endregion Events (2)
+        /// <summary>
+        /// Is invoked when receiving a message failes.
+        /// </summary>
+        public event EventHandler<SendingMessageFailedEventArgs> ReceivingMessageFailed;
+
+        /// <summary>
+        /// Is invoked when sending a message failes.
+        /// </summary>
+        public event EventHandler<SendingMessageFailedEventArgs> SendingMessageFailed;
+
+        #endregion Events (4)
 
         #region Properties (5)
 
@@ -123,7 +131,7 @@ namespace MarcelJoachimKloubert.Messages
 
         #endregion Properties (5)
 
-        #region Methods (14)
+        #region Methods (18)
 
         /// <inheriteddoc />
         public void Dispose()
@@ -315,6 +323,67 @@ namespace MarcelJoachimKloubert.Messages
         }
 
         /// <summary>
+        /// Raises the <see cref="MessageDistributor.ReceivingMessageFailed" /> event.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="msg">The failed message.</param>
+        /// <param name="ex">The thrown exception(s).</param>
+        /// <returns>Event was raised or not.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="sender" />, <paramref name="msg" /> and/or
+        /// <paramref name="ex" /> is <see langword="null" />.
+        /// </exception>
+        protected bool RaiseReceivingMessageFailed(IMessageHandler sender, IMessageContext<object> msg, Exception ex)
+        {
+            return RaiseSendingMessageFailedEventHandler(ReceivingMessageFailed,
+                                                         sender, msg, ex);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="MessageDistributor.SendingMessageFailed" /> event.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="msg">The failed message.</param>
+        /// <param name="ex">The thrown exception(s).</param>
+        /// <returns>Event was raised or not.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="sender" />, <paramref name="msg" /> and/or
+        /// <paramref name="ex" /> is <see langword="null" />.
+        /// </exception>
+        protected bool RaiseSendingMessageFailed(IMessageHandler sender, IMessageContext<object> msg, Exception ex)
+        {
+            return RaiseSendingMessageFailedEventHandler(SendingMessageFailed,
+                                                         sender, msg, ex);
+        }
+
+        private bool RaiseSendingMessageFailedEventHandler(EventHandler<SendingMessageFailedEventArgs> eventHandler,
+                                                           IMessageHandler sender, IMessageContext<object> msg, Exception ex)
+        {
+            if (sender == null)
+            {
+                throw new ArgumentNullException(nameof(sender));
+            }
+
+            if (msg == null)
+            {
+                throw new ArgumentNullException(nameof(msg));
+            }
+
+            if (ex == null)
+            {
+                throw new ArgumentNullException(nameof(ex));
+            }
+
+            if (eventHandler == null)
+            {
+                return false;
+            }
+
+            eventHandler(this, new SendingMessageFailedEventArgs(sender, msg, ex));
+            return true;
+        }
+
+        /// <summary>
         /// Registers a handler.
         /// </summary>
         /// <param name="handler">The handler to register.</param>
@@ -354,7 +423,8 @@ namespace MarcelJoachimKloubert.Messages
                 var members = Enumerable.Empty<MemberInfo>()
                                         .Concat(handlerType.GetFields(flags))
                                         .Concat(handlerType.GetProperties(flags))
-                                        .Concat(handlerType.GetMethods(flags));
+                                        .Concat(handlerType.GetMethods(flags))
+                                        .Concat(handlerType.GetEvents(flags));
 
                 using (var eMembers = members.GetEnumerator())
                 {
@@ -385,6 +455,14 @@ namespace MarcelJoachimKloubert.Messages
                                     {
                                         SubscribeField(ctx, (FieldInfo)member, attrib);
                                     }
+                                    else if (member is EventInfo)
+                                    {
+                                        SubscribeEvent(ctx, (EventInfo)member, attrib);
+                                    }
+                                    else
+                                    {
+                                        throw new NotImplementedException();
+                                    }
                                 }
                             }
                         }
@@ -407,7 +485,7 @@ namespace MarcelJoachimKloubert.Messages
         public IMessageHandlerConfiguration RegisterListOfHandlers(params IMessageHandler[] handlers)
         {
             return RegisterListOfHandlers(ownsHandlers: false,
-                                    handlers: handlers);
+                                          handlers: handlers);
         }
 
         /// <summary>
@@ -420,7 +498,7 @@ namespace MarcelJoachimKloubert.Messages
         public IMessageHandlerConfiguration RegisterListOfHandlers(bool ownsHandlers, params IMessageHandler[] handlers)
         {
             return RegisterListOfHandlers(handlerList: handlers ?? new IMessageHandler[] { null },
-                                    ownsHandlers: ownsHandlers);
+                                          ownsHandlers: ownsHandlers);
         }
 
         /// <summary>
@@ -462,7 +540,76 @@ namespace MarcelJoachimKloubert.Messages
             return result;
         }
 
-        private static void SubscribeField(IMessageHandlerContext ctx, FieldInfo field, ReceiveMessageAttribute attrib)
+        private static void SubscribeEvent(MessageHandlerContext ctx, EventInfo @event, ReceiveMessageAttribute attrib)
+        {
+            var handler = ctx.Handler;
+
+            var eventName = @event.Name;
+
+            var msgType = attrib.MessageType;
+            if (msgType == null)
+            {
+                msgType = @event.EventHandlerType
+                                .GetGenericArguments()[0]
+                                .GetGenericArguments()[0];
+            }
+
+            var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
+
+            var action = new Action<object>((m) =>
+                {
+                    var eventDelegate = handler.GetType()
+                                               .GetField(eventName, BindingFlags.Instance | BindingFlags.NonPublic)
+                                               ?.GetValue(handler) as Delegate;
+                    if (eventDelegate == null)
+                    {
+                        return;
+                    }
+
+                    var msg = (IMessageContext<object>)m;
+
+                    var eventArgsType = typeof(MessageReceivedEventArgs<>).MakeGenericType(msgType);
+                    var eventArgs = Activator.CreateInstance(type: eventArgsType,
+                                                             args: new object[] { msg });
+
+                    IEnumerable<Delegate> eventHandlers;
+                    if (eventDelegate is MulticastDelegate)
+                    {
+                        eventHandlers = ((MulticastDelegate)eventDelegate).GetInvocationList();
+                    }
+                    else
+                    {
+                        eventHandlers = new[] { eventDelegate };
+                    }
+
+                    using (var e = eventHandlers.GetEnumerator())
+                    {
+                        while (e.MoveNext())
+                        {
+                            var eh = e.Current;
+                            if (eh == null)
+                            {
+                                continue;
+                            }
+
+                            try
+                            {
+                                eh.Method
+                                  .Invoke(eh.Target, new object[] { handler, eventArgs });
+                            }
+                            catch (Exception ex)
+                            {
+                                throw ex.GetBaseException();
+                            }
+                        }
+                    }
+                });
+
+            sm.Invoke(obj: ctx,
+                      parameters: new object[] { action, attrib.ThreadOption });
+        }
+
+        private static void SubscribeField(MessageHandlerContext ctx, FieldInfo field, ReceiveMessageAttribute attrib)
         {
             var fieldType = field.FieldType;
 
@@ -482,7 +629,7 @@ namespace MarcelJoachimKloubert.Messages
                       parameters: new object[] { action, attrib.ThreadOption });
         }
 
-        private static void SubscribeMethod(IMessageHandlerContext ctx, MethodInfo method, ReceiveMessageAttribute attrib)
+        private static void SubscribeMethod(MessageHandlerContext ctx, MethodInfo method, ReceiveMessageAttribute attrib)
         {
             var param = method.GetParameters()[0];
             var paramType = param.ParameterType;
@@ -503,7 +650,7 @@ namespace MarcelJoachimKloubert.Messages
                       parameters: new object[] { action, attrib.ThreadOption });
         }
 
-        private static void SubscribeProperty(IMessageHandlerContext ctx, PropertyInfo property, ReceiveMessageAttribute attrib)
+        private static void SubscribeProperty(MessageHandlerContext ctx, PropertyInfo property, ReceiveMessageAttribute attrib)
         {
             var propertyType = property.PropertyType;
 
@@ -537,6 +684,6 @@ namespace MarcelJoachimKloubert.Messages
             }
         }
 
-        #endregion Methods (14)
+        #endregion Methods (18)
     }
 }

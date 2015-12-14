@@ -89,62 +89,75 @@ namespace MarcelJoachimKloubert.Messages
 
             public void Send()
             {
-                var now = Distributor.Now;
-
-                if (SendTime.HasValue)
+                lock (SYNC_ROOT)
                 {
-                    throw new InvalidOperationException("Cannot resend message!");
-                }
+                    var now = Distributor.Now;
 
-                lock (Config.SyncRoot)
-                {
-                    if (!Config.SEND_TYPES.Contains(typeof(TMsg)))
+                    if (SendTime.HasValue)
                     {
-                        // not configured to send that message type
-                        return;
+                        throw new InvalidOperationException("Cannot resend message!");
                     }
-                }
 
-                var otherHandlers = new List<MessageHandlerContext>();
-                lock (Config.Distributor.SyncRoot)
-                {
-                    otherHandlers.AddRange(Config.Distributor
-                                                 ._HANDLERS
-                                                 .Where(x => !x.Handler.Equals(Config.Handler)));
-                }
-
-                var occuredExceptions = new List<Exception>();
-
-                try
-                {
-                    using (var e = otherHandlers.GetEnumerator())
+                    lock (Config.SyncRoot)
                     {
-                        while (e.MoveNext())
+                        if (!Config.SEND_TYPES.Contains(typeof(TMsg)))
                         {
-                            try
+                            // not configured to send that message type
+                            return;
+                        }
+                    }
+
+                    var otherHandlers = new List<MessageHandlerContext>();
+                    lock (Config.Distributor.SyncRoot)
+                    {
+                        otherHandlers.AddRange(Config.Distributor
+                                                     ._HANDLERS
+                                                     .Where(x => !x.Handler.Equals(Config.Handler)));
+                    }
+
+                    var occuredExceptions = new List<Exception>();
+
+                    try
+                    {
+                        using (var e = otherHandlers.GetEnumerator())
+                        {
+                            while (e.MoveNext())
                             {
                                 var ctx = e.Current;
 
-                                var msg = CloneForRecipient();
-                                msg.SendTime = now;
+                                try
+                                {
+                                    var msg = CloneForRecipient();
+                                    msg.SendTime = now;
 
-                                ctx.Receive(msg);
-                            }
-                            catch (Exception ex)
-                            {
-                                occuredExceptions.Add(ex);
+                                    ctx.Receive(msg);
+                                }
+                                catch (Exception ex)
+                                {
+                                    occuredExceptions.Add(new MessageHandlerException(ctx.Handler, ex));
+                                }
                             }
                         }
                     }
-                }
-                finally
-                {
-                    SendTime = now;
-                }
+                    catch (Exception ex)
+                    {
+                        occuredExceptions.Add(ex);
+                    }
+                    finally
+                    {
+                        SendTime = now;
+                    }
 
-                if (occuredExceptions.Count > 0)
-                {
-                    throw new AggregateException(occuredExceptions);
+                    if (occuredExceptions.Count < 1)
+                    {
+                        return;
+                    }
+
+                    var exceptionToThrow = new AggregateException(occuredExceptions);
+                    if (!Distributor.RaiseSendingMessageFailed(Config.Handler, (IMessageContext<object>)this, exceptionToThrow))
+                    {
+                        throw exceptionToThrow;
+                    }
                 }
             }
 
