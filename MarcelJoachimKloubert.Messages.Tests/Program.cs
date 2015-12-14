@@ -28,65 +28,11 @@
  **********************************************************************************************************************/
 
 using MarcelJoachimKloubert.Extensions;
+using MarcelJoachimKloubert.Messages.Tests.AddressBooks;
 using System;
 
 namespace MarcelJoachimKloubert.Messages.Tests
 {
-    public class TestMessageClass : ITestMessage
-    {
-        public int A { get; set; }
-    }
-
-    [MessageInstance(typeof(TestMessageClass))]
-    public interface ITestMessage
-    {
-        int A { get; set; }
-    }
-
-    internal class MyMessageHandler : MessageHandlerBase
-    {
-        private static int _instances = 0;
-
-        [ReceiveMessage]
-        private IMessageContext<ITestMessage> _lastTestMsg;
-
-        public MyMessageHandler()
-        {
-            Id = ++_instances;
-        }
-
-        public int Id { get; private set; }
-
-        [ReceiveMessage]
-        public IMessageContext<ITestMessage> TestMessage
-        {
-            set
-            {
-                if (value != null)
-                {
-                }
-            }
-        }
-
-        [ReceiveMessage(typeof(ITestMessage))]
-        private void HandleTestMessage(IMessageContext<object> msg)
-        {
-            if (Id != null)
-            {
-            }
-        }
-
-        public void SendTestMessage()
-        {
-            var newMsg = Context.CreateMessage<ITestMessage>();
-
-            newMsg.Send();
-        }
-
-        [ReceiveMessage]
-        public event EventHandler<MessageReceivedEventArgs<ITestMessage>> TestMessageReceived;
-    }
-
     internal static class Program
     {
         #region Methods (1)
@@ -97,35 +43,19 @@ namespace MarcelJoachimKloubert.Messages.Tests
 
             try
             {
-                var handler1 = new MyMessageHandler();
-                var handler2 = new MyMessageHandler();
-
-                handler2.TestMessageReceived += (sender, e) =>
-                    {
-                        if (e != null)
-                        {
-                        }
-                    };
-
-                handler1.StartTimer((h, s) =>
-                {
-                }, (h) =>
-                {
-                    return new
-                    {
-                        Now = DateTimeOffset.Now,
-                    };
-                }, TimeSpan.FromSeconds(10));
+                var outlook = new OutlookAddressBook();
+                var thunderbird = new ThunderbirdAddressBook();
 
                 var distributor = new MessageDistributor();
 
-                var cfg1 = distributor.RegisterHandler(handler1);
-                cfg1.RegisterForSend<ITestMessage>();
+                outlook.RegisterTo(distributor)
+                       .RegisterFor<INewContact>();
 
-                var cfg2 = distributor.RegisterHandler(handler2);
-                cfg2.RegisterForReceive<ITestMessage>();
+                thunderbird.RegisterTo(distributor)
+                           .RegisterFor<INewContact>();
 
-                handler1.SendTestMessage();
+                outlook.CreateContact("Marcel", "Kloubert",
+                                      "marcel.kloubert@gmx.net");
             }
             catch
             {

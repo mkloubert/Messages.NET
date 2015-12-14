@@ -36,7 +36,7 @@ namespace MarcelJoachimKloubert.Messages
     /// </summary>
     public interface IMessageLogEntry
     {
-        #region Properties (9)
+        #region Properties (8)
 
         /// <summary>
         /// Gets the category.
@@ -49,7 +49,7 @@ namespace MarcelJoachimKloubert.Messages
         IMessageHandler Handler { get; }
 
         /// <summary>
-        /// Gets the ID of the message.
+        /// Gets the ID of the entry.
         /// </summary>
         Guid Id { get; }
 
@@ -62,11 +62,6 @@ namespace MarcelJoachimKloubert.Messages
         /// Gets the underlying message.
         /// </summary>
         IMessageContext<object> Message { get; }
-
-        /// <summary>
-        /// Gets the message type.
-        /// </summary>
-        Type MessageType { get; }
 
         /// <summary>
         /// Gets the priority.
@@ -83,6 +78,6 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         DateTimeOffset Time { get; }
 
-        #endregion Properties (9)
+        #endregion Properties (8)
     }
 }
