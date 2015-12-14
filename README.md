@@ -141,7 +141,7 @@ If you need an additional address book system, simply create an object based on 
 If you want to receive and handle new contacts in background, you can use the `ThreadOption` property of `ReceiveMessageAttribute` class:
 
 ```csharp
-abstract class AddressBook extends MessageHandlerBase {
+abstract class AddressBook : MessageHandlerBase {
     // ...
                           
     // the constructor sets the "ThreadOption"
