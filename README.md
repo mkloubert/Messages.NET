@@ -95,7 +95,7 @@ class ThunderbirdAddressBook : AddressBook {
 }
 ```
 
-Now lets set up a `MessageDistributor` instance for sharing new contact data between Outlook and Thunderbird:
+The next step is to set up a `MessageDistributor` instance for sharing new contact data between Outlook and Thunderbird:
 
 ```csharp
 var outlook = new OutlookAddressBook();
@@ -112,13 +112,24 @@ distributor.RegisterHandler(outlook)
 distributor.RegisterHandler(thunderbird)
            .RegisterForSend<INewContact>()
            .RegisterForReceive<INewContact>();
-           
+```
+
+Now lets share new contacts:
+
+```csharp
 // create a new contact in Outlook
 // and send it to Thunderbird
 outlook.CreateContact("Marcel", "Kloubert",
                       "marcel.kloubert@gmx.net");
-                      
-// or use the other direction (from Thunderbird => Outlook)
+```
+
+Or use the other direction (from Thunderbird to Outlook):
+
+```csharp
 thunderbird.CreateContact("Marcel", "Kloubert",
                           "marcel.kloubert@gmx.net");
 ```
+
+And that's all you need to do to share data!
+
+If you need an additional address book system, simply create an object based on `AddressBook` class and register it to the `MessageDistributor` object the same way as in that example.
