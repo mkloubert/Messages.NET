@@ -594,7 +594,7 @@ namespace MarcelJoachimKloubert.Messages
 
                             try
                             {
-                                eh.Method
+                                eh.GetMethodInfo()
                                   .Invoke(eh.Target, new object[] { handler, eventArgs });
                             }
                             catch (Exception ex)

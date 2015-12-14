@@ -28,7 +28,6 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Runtime.Serialization;
 
 namespace MarcelJoachimKloubert.Messages
 {
@@ -37,7 +36,7 @@ namespace MarcelJoachimKloubert.Messages
     /// </summary>
     public class MessageHandlerException : Exception
     {
-        #region Constructors (2)
+        #region Constructors (1)
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageHandlerException" /> class.
@@ -51,14 +50,7 @@ namespace MarcelJoachimKloubert.Messages
             Handler = handler;
         }
 
-        /// <inheriteddoc />
-        protected MessageHandlerException(SerializationInfo info, StreamingContext context)
-            : base(info: info,
-                   context: context)
-        {
-        }
-
-        #endregion Constructors (2)
+        #endregion Constructors (1)
 
         #region Properties (1)
 
