@@ -57,7 +57,7 @@ namespace MarcelJoachimKloubert.Messages
         /// <summary>
         /// Gets the underlying handler.
         /// </summary>
-        public IMessageHandler Handler { get; private set; }
+        public IMessageHandler Handler { get; }
 
         #endregion Properties (1)
     }
