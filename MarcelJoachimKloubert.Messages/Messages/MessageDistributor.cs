@@ -66,9 +66,7 @@ namespace MarcelJoachimKloubert.Messages
 
             var asmBuilder = AppDomain.CurrentDomain
                                       .DefineDynamicAssembly(asmName, AssemblyBuilderAccess.RunAndSave);
-            _MODULE_BUILDER = asmBuilder.DefineDynamicModule(string.Format("MJKDynamicObjectFactoryModule_{0:N}_{1}",
-                                                                           Guid.NewGuid(),
-                                                                           GetHashCode()));
+            _MODULE_BUILDER = asmBuilder.DefineDynamicModule($"MJKDynamicObjectFactoryModule_{Guid.NewGuid():N}_{GetHashCode()}");
         }
 
         /// <summary>
@@ -364,17 +362,17 @@ namespace MarcelJoachimKloubert.Messages
         {
             if (sender == null)
             {
-                throw new ArgumentNullException("sender");
+                throw new ArgumentNullException(nameof(sender));
             }
 
             if (msg == null)
             {
-                throw new ArgumentNullException("msg");
+                throw new ArgumentNullException(nameof(msg));
             }
 
             if (ex == null)
             {
-                throw new ArgumentNullException("ex");
+                throw new ArgumentNullException(nameof(ex));
             }
 
             if (eventHandler == null)
@@ -561,14 +559,9 @@ namespace MarcelJoachimKloubert.Messages
 
             var action = new Action<object>((m) =>
                 {
-                    var eventField = handler.GetType()
-                                            .GetField(eventName, BindingFlags.Instance | BindingFlags.NonPublic);
-                    if (eventField == null)
-                    {
-                        return;
-                    }
-
-                    var eventDelegate = eventField.GetValue(handler) as Delegate;
+                    var eventDelegate = handler.GetType()
+                                               .GetField(eventName, BindingFlags.Instance | BindingFlags.NonPublic)
+                                               ?.GetValue(handler) as Delegate;
                     if (eventDelegate == null)
                     {
                         return;

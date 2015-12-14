@@ -45,7 +45,7 @@ namespace MarcelJoachimKloubert.Messages
         /// <param name="handler">The value for the <see cref="MessageHandlerException.Handler" /> property.</param>
         /// <param name="innerException">The value for the <see cref="Exception.InnerException" /> property.</param>
         public MessageHandlerException(IMessageHandler handler, Exception innerException)
-            : base(message: innerException != null ? innerException.Message : null,
+            : base(message: innerException?.Message,
                    innerException: innerException)
         {
             Handler = handler;

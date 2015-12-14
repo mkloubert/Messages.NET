@@ -57,7 +57,7 @@ namespace MarcelJoachimKloubert.Messages
         /// <summary>
         /// Gets the received message.
         /// </summary>
-        public IMessageContext<TMsg> Message { get; private set; }
+        public IMessageContext<TMsg> Message { get; }
 
         #endregion Properties (1)
     }

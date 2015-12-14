@@ -56,7 +56,7 @@ namespace MarcelJoachimKloubert.Messages
         /// <summary>
         /// Gets the wraped exception that was thrown.
         /// </summary>
-        public MessageHandlerException Exception { get; private set; }
+        public MessageHandlerException Exception { get; }
 
         /// <summary>
         /// Gets the message that was send.
@@ -66,10 +66,7 @@ namespace MarcelJoachimKloubert.Messages
         /// <summary>
         /// Gets the sending handler.
         /// </summary>
-        public IMessageHandler Sender
-        {
-            get { return Exception.Handler; }
-        }
+        public IMessageHandler Sender => Exception.Handler;
 
         #endregion Properties (3)
     }

@@ -153,13 +153,13 @@ namespace MarcelJoachimKloubert.Messages
 
                         fieldNamesInUse.Add(fieldName);
 
-                        var fieldBuilder = typeBuilder.DefineField("_" + fieldName,
+                        var fieldBuilder = typeBuilder.DefineField($"_{fieldName}",
                                                                    propertyType,
                                                                    FieldAttributes.Family);
 
                         // getter
                         {
-                            var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName,
+                            var methodBuilder = typeBuilder.DefineMethod($"get_{propertyName}",
                                                                          MethodAttributes.Public | MethodAttributes.Virtual,
                                                                          propertyType,
                                                                          Type.EmptyTypes);
@@ -175,7 +175,7 @@ namespace MarcelJoachimKloubert.Messages
 
                         // setter
                         {
-                            var methodBuilder = typeBuilder.DefineMethod("set_" + propertyName,
+                            var methodBuilder = typeBuilder.DefineMethod($"set_{propertyName}",
                                                                          MethodAttributes.Public | MethodAttributes.Virtual,
                                                                          typeof(void),
                                                                          new[] { propertyType });
