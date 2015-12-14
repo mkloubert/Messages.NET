@@ -572,15 +572,8 @@ namespace MarcelJoachimKloubert.Messages
                     var eventArgs = Activator.CreateInstance(type: eventArgsType,
                                                              args: new object[] { msg });
 
-                    IEnumerable<Delegate> eventHandlers;
-                    if (eventDelegate is MulticastDelegate)
-                    {
-                        eventHandlers = ((MulticastDelegate)eventDelegate).GetInvocationList();
-                    }
-                    else
-                    {
-                        eventHandlers = new[] { eventDelegate };
-                    }
+                    IEnumerable<Delegate> eventHandlers = (eventDelegate as MulticastDelegate)?.GetInvocationList() ??
+                                                          new[] { eventDelegate };
 
                     using (var e = eventHandlers.GetEnumerator())
                     {
