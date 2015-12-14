@@ -42,7 +42,7 @@ namespace MarcelJoachimKloubert.Messages
 
             #endregion Fields (2)
 
-            #region Properties (7)
+            #region Properties (8)
 
             public DateTimeOffset CreationTime { get; set; }
 
@@ -55,6 +55,11 @@ namespace MarcelJoachimKloubert.Messages
 
             public TMsg Message { get; set; }
 
+            public Type MessageType
+            {
+                get { return typeof(TMsg); }
+            }
+
             public DateTimeOffset? SendTime { get; set; }
 
             DateTimeOffset IMessageContext<TMsg>.SendTime
@@ -64,7 +69,7 @@ namespace MarcelJoachimKloubert.Messages
 
             public object Tag { get; set; }
 
-            #endregion Properties (7)
+            #endregion Properties (8)
 
             #region Methods (3)
 

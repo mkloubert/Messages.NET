@@ -27,38 +27,18 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using System;
-
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Messages.Tests.AddressBooks
 {
-    partial class MessageDistributor
+    public interface INewContact
     {
-        internal class MessageLogEntry<TMsg> : MarshalByRefObject, IMessageLogEntry
-        {
-            #region Properties (9)
+        #region Properties (3)
 
-            public MessageLogCategory Category { get; internal set; }
+        string Email { get; set; }
 
-            public IMessageHandler Handler { get; internal set; }
+        string Firstname { get; set; }
 
-            public Guid Id { get; internal set; }
+        string Lastname { get; set; }
 
-            public object LogMessage { get; internal set; }
-
-            public IMessageContext<TMsg> Message { get; internal set; }
-
-            IMessageContext<object> IMessageLogEntry.Message
-            {
-                get { return (IMessageContext<object>)Message; }
-            }
-
-            public MessageLogPriority Priority { get; internal set; }
-
-            public string Tag { get; internal set; }
-
-            public DateTimeOffset Time { get; internal set; }
-
-            #endregion Properties (9)
-        }
+        #endregion Properties (3)
     }
 }

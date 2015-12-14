@@ -41,6 +41,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddressBooks\AddressBook.cs" />
+    <Compile Include="AddressBooks\INewContact.cs" />
+    <Compile Include="AddressBooks\OutlookAddressBook.cs" />
+    <Compile Include="AddressBooks\ThunderbirdAddressBook.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

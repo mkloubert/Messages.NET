@@ -27,38 +27,19 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using System;
-
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Messages.Tests.AddressBooks
 {
-    partial class MessageDistributor
+    public class OutlookAddressBook : AddressBook
     {
-        internal class MessageLogEntry<TMsg> : MarshalByRefObject, IMessageLogEntry
+        #region Methods (1)
+
+        protected override void ReceiveNewContact(INewContact contact)
         {
-            #region Properties (9)
-
-            public MessageLogCategory Category { get; internal set; }
-
-            public IMessageHandler Handler { get; internal set; }
-
-            public Guid Id { get; internal set; }
-
-            public object LogMessage { get; internal set; }
-
-            public IMessageContext<TMsg> Message { get; internal set; }
-
-            IMessageContext<object> IMessageLogEntry.Message
+            if (contact != null) // this is only to stop with the debugger here
             {
-                get { return (IMessageContext<object>)Message; }
             }
-
-            public MessageLogPriority Priority { get; internal set; }
-
-            public string Tag { get; internal set; }
-
-            public DateTimeOffset Time { get; internal set; }
-
-            #endregion Properties (9)
         }
+
+        #endregion Methods (1)
     }
 }

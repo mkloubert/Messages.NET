@@ -27,38 +27,46 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using System;
-
-namespace MarcelJoachimKloubert.Messages
+namespace MarcelJoachimKloubert.Messages.Tests.AddressBooks
 {
-    partial class MessageDistributor
+    public abstract class AddressBook : MessageHandlerBase
     {
-        internal class MessageLogEntry<TMsg> : MarshalByRefObject, IMessageLogEntry
+        #region Methods (3)
+
+        // create a new contact in that address book
+        // and send it to the other address books
+        public void CreateContact(string firstName, string lastName,
+                                  string email)
         {
-            #region Properties (9)
-
-            public MessageLogCategory Category { get; internal set; }
-
-            public IMessageHandler Handler { get; internal set; }
-
-            public Guid Id { get; internal set; }
-
-            public object LogMessage { get; internal set; }
-
-            public IMessageContext<TMsg> Message { get; internal set; }
-
-            IMessageContext<object> IMessageLogEntry.Message
+            try
             {
-                get { return (IMessageContext<object>)Message; }
+                CreateContactHere(firstName, lastName, email);
             }
+            finally
+            {
+                // send contact data to other systems
 
-            public MessageLogPriority Priority { get; internal set; }
+                var newMsg = Context.CreateMessage<INewContact>();
 
-            public string Tag { get; internal set; }
+                var newContact = newMsg.Message;
+                newContact.Email = email;
+                newContact.Firstname = firstName;
+                newContact.Lastname = lastName;
 
-            public DateTimeOffset Time { get; internal set; }
-
-            #endregion Properties (9)
+                newMsg.Send();
+            }
         }
+
+        // the logic that creates the new contact entry where
+        protected virtual void CreateContactHere(string firstName, string lastName,
+                                                 string email)
+        {
+        }
+
+        // receive a new contact from another address book
+        [ReceiveMessage]
+        protected abstract void ReceiveNewContact(INewContact contact);
+
+        #endregion Methods (3)
     }
 }
