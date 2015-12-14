@@ -118,7 +118,7 @@ distributor.RegisterHandler(thunderbird)
 outlook.CreateContact("Marcel", "Kloubert",
                       "marcel.kloubert@gmx.net");
                       
-// or do it 
+// or use the other direction (from Thunderbird => Outlook)
 thunderbird.CreateContact("Marcel", "Kloubert",
                           "marcel.kloubert@gmx.net");
 ```
