@@ -44,8 +44,11 @@ namespace MarcelJoachimKloubert.Messages
         /// Initializes a new instance of the <see cref="MessageInstanceAttribute" /> class.
         /// </summary>
         /// <param name="threadOption">The value for the <see cref="ReceiveMessageAttribute.ThreadOption" /> property.</param>
-        public ReceiveMessageAttribute(MessageThreadOption threadOption = MessageThreadOption.Current)
-            : this(msgType: null, threadOption: threadOption)
+        /// <param name="isSynchronized">The value for the <see cref="ReceiveMessageAttribute.IsSynchronized" /> property.</param>
+        public ReceiveMessageAttribute(MessageThreadOption threadOption = MessageThreadOption.Current,
+                                       bool isSynchronized = false)
+            : this(msgType: null,
+                   threadOption: threadOption, isSynchronized: isSynchronized)
         {
         }
 
@@ -54,15 +57,23 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         /// <param name="msgType">The value for the <see cref="ReceiveMessageAttribute.MessageType" /> property.</param>
         /// <param name="threadOption">The value for the <see cref="ReceiveMessageAttribute.ThreadOption" /> property.</param>
-        public ReceiveMessageAttribute(Type msgType, MessageThreadOption threadOption = MessageThreadOption.Current)
+        /// <param name="isSynchronized">The value for the <see cref="ReceiveMessageAttribute.IsSynchronized" /> property.</param>
+        public ReceiveMessageAttribute(Type msgType,
+                                       MessageThreadOption threadOption = MessageThreadOption.Current, bool isSynchronized = false)
         {
             MessageType = msgType;
             ThreadOption = threadOption;
+            IsSynchronized = isSynchronized;
         }
 
         #endregion Constructors (2)
 
-        #region Properties (2)
+        #region Properties (3)
+
+        /// <summary>
+        /// Gets or sets if the delegate that received the message should be handled thread safe or not.
+        /// </summary>
+        public bool IsSynchronized { get; set; }
 
         /// <summary>
         /// Gets or sets the message type.
@@ -74,6 +85,6 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         public MessageThreadOption ThreadOption { get; set; }
 
-        #endregion Properties (2)
+        #endregion Properties (3)
     }
 }
