@@ -57,7 +57,7 @@ class OutlookAddressBook : AddressBook {
         
         // 2. send new contact to the other address books (Thunderbird in that case)
         {
-            var newMsg = Context.CreateNewMessage<INewContact>();
+            var newMsg = Context.CreateMessage<INewContact>();
         
             // the "INewContact" object is stored
             // in "Message" property of "newMsg" object
