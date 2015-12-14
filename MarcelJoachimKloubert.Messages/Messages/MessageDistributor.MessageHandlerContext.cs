@@ -43,7 +43,7 @@ namespace MarcelJoachimKloubert.Messages
         {
             #region Fields (3)
 
-            internal readonly IDictionary<Type, ICollection<Delegate>> SUBSCRIPTIONS = new Dictionary<Type, ICollection<Delegate>>();
+            internal readonly IDictionary<Type, ICollection<IList<Delegate>>> SUBSCRIPTIONS = new Dictionary<Type, ICollection<IList<Delegate>>>();
 
             internal MessageHandlerConfiguration Config;
 
@@ -70,7 +70,7 @@ namespace MarcelJoachimKloubert.Messages
 
             #endregion Properties (3)
 
-            #region Methods (9)
+            #region Methods (10)
 
             public INewMessageContext<TMsg> CreateMessage<TMsg>()
             {
@@ -311,6 +311,14 @@ namespace MarcelJoachimKloubert.Messages
                 return result;
             }
 
+            private void RaiseReceiveMessageError<TMsg>(IMessageContext<TMsg> msgCtx, Exception ex)
+            {
+                if (!Distributor.RaiseReceivingMessageFailed(Handler, (IMessageContext<object>)msgCtx, ex))
+                {
+                    throw ex;
+                }
+            }
+
             internal bool? Receive<TMsg>(MessageContext<TMsg> msg)
             {
                 if (msg == null)
@@ -318,7 +326,7 @@ namespace MarcelJoachimKloubert.Messages
                     return null;
                 }
 
-                ICollection<Delegate> subscriberActions;
+                ICollection<IList<Delegate>> subscriberActions;
                 lock (SyncRoot)
                 {
                     var msgType = typeof(TMsg);
@@ -353,7 +361,7 @@ namespace MarcelJoachimKloubert.Messages
                     {
                         try
                         {
-                            var h = e.Current;
+                            var h = e.Current[1];
 
                             h.GetMethodInfo()
                              .Invoke(obj: h.Target,
@@ -369,17 +377,16 @@ namespace MarcelJoachimKloubert.Messages
                 if (occuredExceptions.Count > 0)
                 {
                     var exceptionToThrow = new AggregateException(occuredExceptions);
-                    if (!Distributor.RaiseReceivingMessageFailed(Handler, (IMessageContext<object>)msg, exceptionToThrow))
-                    {
-                        throw exceptionToThrow;
-                    }
+
+                    RaiseReceiveMessageError(msg, exceptionToThrow);
                 }
 
                 return true;
             }
 
             public IMessageHandlerContext Subscribe<TMsg>(Action<IMessageContext<TMsg>> handler,
-                                                          MessageThreadOption threadOption = MessageThreadOption.Current)
+                                                          MessageThreadOption threadOption = MessageThreadOption.Current,
+                                                          bool isSynchronized = false)
             {
                 lock (SyncRoot)
                 {
@@ -390,15 +397,23 @@ namespace MarcelJoachimKloubert.Messages
 
                     var msgType = typeof(TMsg);
 
-                    ICollection<Delegate> handlers;
+                    ICollection<IList<Delegate>> handlers;
                     if (!SUBSCRIPTIONS.TryGetValue(msgType, out handlers))
                     {
-                        handlers = new List<Delegate>();
+                        handlers = new List<IList<Delegate>>();
                         SUBSCRIPTIONS.Add(msgType, handlers);
                     }
 
-                    handlers.Add(WrapSubscribeHandler<TMsg>(handler: handler,
-                                                            threadOption: threadOption));
+                    handlers.Add(new List<Delegate>
+                        {
+                            // [0] the handler to use for subscription
+                            handler,
+
+                            // [1] the "real" / wrapped handler that is invoked
+                            WrapSubscribeHandler<TMsg>(handler: handler,
+                                                                threadOption: threadOption,
+                                                                isSynchronized: isSynchronized),
+                        });
                 }
 
                 return this;
@@ -412,12 +427,13 @@ namespace MarcelJoachimKloubert.Messages
                     {
                         var msgType = typeof(TMsg);
 
-                        ICollection<Delegate> handlers;
-                        if (SUBSCRIPTIONS.TryGetValue(msgType, out handlers))
+                        ICollection<IList<Delegate>> handlerEntries;
+                        if (SUBSCRIPTIONS.TryGetValue(msgType, out handlerEntries))
                         {
-                            while (handlers.Contains(handler))
+                            IList<Delegate> entry;
+                            while ((entry = handlerEntries.FirstOrDefault(x => x[0].Equals(handler))) != null)
                             {
-                                handlers.Remove(handler);
+                                handlerEntries.Remove(entry);
                             }
                         }
                     }
@@ -436,30 +452,77 @@ namespace MarcelJoachimKloubert.Messages
                 return this;
             }
 
-            private static Action<IMessageContext<TMsg>> WrapSubscribeHandler<TMsg>(Action<IMessageContext<TMsg>> handler,
-                                                                                    MessageThreadOption threadOption)
+            private Action<IMessageContext<TMsg>> WrapSubscribeHandler<TMsg>(Action<IMessageContext<TMsg>> handler,
+                                                                             MessageThreadOption threadOption,
+                                                                             bool isSynchronized)
             {
+                var actionToInvoke = handler;
+
                 if (threadOption == MessageThreadOption.Background)
                 {
-                    return (msgCtx) =>
+                    Action<object> taskAction = (s) =>
                         {
-                            Task.Factory
-                                .StartNew(action: (s) =>
-                                     {
-                                         var taskArgs = (object[])s;
+                            var taskArgs = (object[])s;
 
-                                         var h = (Action<IMessageContext<TMsg>>)taskArgs[0];
-                                         var mc = (IMessageContext<TMsg>)taskArgs[1];
+                            var h = (Action<IMessageContext<TMsg>>)taskArgs[0];
+                            var mc = (IMessageContext<TMsg>)taskArgs[1];
 
-                                         h(mc);
-                                     }, state: new object[] { handler, msgCtx });
+                            h(mc);
+                        };
+
+                    var realTaskAction = taskAction;
+                    if (isSynchronized)
+                    {
+                        var syncRoot = new object();
+
+                        realTaskAction = (s) =>
+                            {
+                                lock (syncRoot)
+                                {
+                                    taskAction(s);
+                                }
+                            };
+                    }
+
+                    actionToInvoke = (msgCtx) =>
+                        {
+                            var newTask = new Task(action: realTaskAction,
+                                                   state: new object[] { handler, msgCtx });
+                            newTask.ContinueWith((task) =>
+                                {
+                                    if (!task.IsFaulted)
+                                    {
+                                        return;
+                                    }
+
+                                    var ex = task.Exception;
+                                    if (ex == null ||
+                                        ex.InnerExceptions.Count < 1)
+                                    {
+                                        return;
+                                    }
+
+                                    RaiseReceiveMessageError(msgCtx, ex);
+                                });
+
+                            newTask.Start();
                         };
                 }
 
-                return handler;
+                return (msgCtx) =>
+                    {
+                        try
+                        {
+                            actionToInvoke(msgCtx);
+                        }
+                        catch (Exception ex)
+                        {
+                            RaiseReceiveMessageError(msgCtx, ex);
+                        }
+                    };
             }
 
-            #endregion Methods (9)
+            #endregion Methods (10)
         }
     }
 }

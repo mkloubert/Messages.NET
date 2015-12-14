@@ -44,12 +44,14 @@ namespace MarcelJoachimKloubert.Extensions
         /// <param name="ctx">The handler context.</param>
         /// <param name="noContextHandler">The action that handles a received message.</param>
         /// <param name="threadOption">The way <paramref name="noContextHandler" /> should be receive a message.</param>
+        /// <param name="isSynchronized">Invoke action thread safe or not.</param>
         /// <returns>The action that is used in <paramref name="ctx" />.</returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="ctx" /> and/or <paramref name="noContextHandler" /> is <see langword="null" />.
         /// </exception>
-        public static Action<IMessageContext<TMsg>> Subscribe<TMsg>(this IMessageHandlerContext ctx,
-                                                                    Action<TMsg> noContextHandler, MessageThreadOption threadOption = MessageThreadOption.Current)
+        public static Action<IMessageContext<TMsg>> Subscribe<TMsg>(this IMessageHandlerContext ctx, Action<TMsg> noContextHandler,
+                                                                    MessageThreadOption threadOption = MessageThreadOption.Current,
+                                                                    bool isSynchronized = false)
         {
             if (ctx == null)
             {
@@ -64,7 +66,8 @@ namespace MarcelJoachimKloubert.Extensions
             Action<IMessageContext<TMsg>> result = (msgCtx) => noContextHandler(msgCtx.Message);
 
             ctx.Subscribe<TMsg>(handler: result,
-                                threadOption: threadOption);
+                                threadOption: threadOption,
+                                isSynchronized: isSynchronized);
             return result;
         }
 
@@ -75,12 +78,15 @@ namespace MarcelJoachimKloubert.Extensions
         /// <param name="msgType">The message type.</param>
         /// <param name="noContextHandler">The action that handles a received message.</param>
         /// <param name="threadOption">The way <paramref name="noContextHandler" /> should be receive a message.</param>
+        /// <param name="isSynchronized">Invoke action thread safe or not.</param>
         /// <returns>The action that is used in <paramref name="ctx" />.</returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="ctx" />, <paramref name="msgType" /> and/or <paramref name="noContextHandler" /> is <see langword="null" />.
         /// </exception>
         public static Action<IMessageContext<object>> Subscribe(this IMessageHandlerContext ctx, Type msgType,
-                                                                Action<object> noContextHandler, MessageThreadOption threadOption = MessageThreadOption.Current)
+                                                                Action<object> noContextHandler,
+                                                                MessageThreadOption threadOption = MessageThreadOption.Current,
+                                                                bool isSynchronized = false)
         {
             if (noContextHandler == null)
             {
@@ -90,17 +96,20 @@ namespace MarcelJoachimKloubert.Extensions
             Action<IMessageContext<object>> result = (msgCtx) => noContextHandler(msgCtx.Message);
             Subscribe(ctx: ctx,
                       msgType: msgType,
-                      handler: result, threadOption: threadOption);
+                      handler: result,
+                      threadOption: threadOption, isSynchronized: isSynchronized);
 
             return result;
         }
 
         /// <summary>
-        /// <see cref="IMessageHandlerContext.Subscribe{TMsg}(Action{IMessageContext{TMsg}}, MessageThreadOption)" />
+        /// <see cref="IMessageHandlerContext.Subscribe{TMsg}(Action{IMessageContext{TMsg}}, MessageThreadOption, bool)" />
         /// </summary>
         public static TCtx Subscribe<TCtx>(this TCtx ctx,
                                            Type msgType,
-                                           Action<IMessageContext<object>> handler, MessageThreadOption threadOption = MessageThreadOption.Current)
+                                           Action<IMessageContext<object>> handler,
+                                           MessageThreadOption threadOption = MessageThreadOption.Current,
+                                           bool isSynchronized = false)
             where TCtx : IMessageHandlerContext
         {
             if (ctx == null)
@@ -118,10 +127,12 @@ namespace MarcelJoachimKloubert.Extensions
                 throw new ArgumentNullException(nameof(handler));
             }
 
-            var sm = GetHandlerContextMethod<TCtx>(() => ctx.Subscribe<object>(handler, MessageThreadOption.Current)).MakeGenericMethod(msgType);
+            var sm = GetHandlerContextMethod<TCtx>(() => ctx.Subscribe<object>(handler,
+                                                                               threadOption,
+                                                                               isSynchronized)).MakeGenericMethod(msgType);
 
             sm.Invoke(obj: ctx,
-                      parameters: new object[] { handler });
+                      parameters: new object[] { handler, threadOption, isSynchronized });
 
             return ctx;
         }
