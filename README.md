@@ -33,7 +33,7 @@ Now we should start with the implementation of the address books:
 At the beginning we define a base class:
 
 ```csharp
-abstract class AddressBook extends MessageHandlerBase {
+abstract class AddressBook : MessageHandlerBase {
     // create a new contact in that address book
     // and send it to the other address books
     public abstract void CreateContact(string firstName, string lastName,
