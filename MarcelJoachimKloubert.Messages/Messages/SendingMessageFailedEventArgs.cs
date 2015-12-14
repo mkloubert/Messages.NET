@@ -62,7 +62,7 @@ namespace MarcelJoachimKloubert.Messages
         /// <summary>
         /// Gets the message that was send.
         /// </summary>
-        public IMessageContext<object> Message { get; private set; }
+        public IMessageContext<object> Message { get; }
 
         /// <summary>
         /// Gets the sending handler.
