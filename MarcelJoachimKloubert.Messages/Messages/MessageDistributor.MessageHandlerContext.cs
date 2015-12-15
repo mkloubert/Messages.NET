@@ -41,7 +41,7 @@ namespace MarcelJoachimKloubert.Messages
     {
         internal class MessageHandlerContext : MarshalByRefObject, IMessageHandlerContext
         {
-            #region Fields (3)
+            #region Fields (4)
 
             internal MessageHandlerConfiguration Config;
 
@@ -49,16 +49,9 @@ namespace MarcelJoachimKloubert.Messages
 
             internal ModuleBuilder ModuleBuilder;
 
-            #endregion Fields (3)
+            internal object SYNC_ROOT = new object();
 
-            #region Contructors (1)
-
-            internal MessageHandlerContext()
-            {
-                SyncRoot = new object();
-            }
-
-            #endregion Contructors (1)
+            #endregion Fields (4)
 
             #region Properties (3)
 
@@ -68,8 +61,6 @@ namespace MarcelJoachimKloubert.Messages
             }
 
             public IMessageHandler Handler { get; internal set; }
-
-            internal object SyncRoot { get; private set; }
 
             #endregion Properties (3)
 
@@ -302,7 +293,7 @@ namespace MarcelJoachimKloubert.Messages
             public IDictionary<Type, IEnumerable<Delegate>> GetSubscriptions()
             {
                 Dictionary<Type, IEnumerable<Delegate>> result;
-                lock (SyncRoot)
+                lock (SYNC_ROOT)
                 {
                     result = MESSAGE_TYPES.ToDictionary(keySelector: x => x.KEY,
                                                         elementSelector: x => (IEnumerable<Delegate>)x.SUBSCRIPTIONS
@@ -329,7 +320,7 @@ namespace MarcelJoachimKloubert.Messages
                 }
 
                 MessageType msgType;
-                lock (SyncRoot)
+                lock (SYNC_ROOT)
                 {
                     msgType = TryFindMessageType(typeof(TMsg));
                 }
@@ -385,7 +376,7 @@ namespace MarcelJoachimKloubert.Messages
                                                           MessageThreadOption threadOption = MessageThreadOption.Current,
                                                           bool isSynchronized = false)
             {
-                lock (SyncRoot)
+                lock (SYNC_ROOT)
                 {
                     if (handler == null)
                     {
@@ -421,7 +412,7 @@ namespace MarcelJoachimKloubert.Messages
 
             public IMessageHandlerContext Unsubscribe<TMsg>(Action<IMessageContext<TMsg>> handler)
             {
-                lock (SyncRoot)
+                lock (SYNC_ROOT)
                 {
                     if (handler != null)
                     {
@@ -445,7 +436,7 @@ namespace MarcelJoachimKloubert.Messages
 
             public IMessageHandlerContext UnsubscribeAll<TMsg>()
             {
-                lock (SyncRoot)
+                lock (SYNC_ROOT)
                 {
                     var msgType = TryFindMessageType(typeof(TMsg));
                     if (msgType != null)
