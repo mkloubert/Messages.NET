@@ -53,13 +53,13 @@ namespace MarcelJoachimKloubert.Messages
 
             #endregion Fields (4)
 
-            #region Properties (3)
+            #region Properties (2)
 
             public MessageDistributor Distributor => Config.Distributor;
 
             public IMessageHandler Handler { get; internal set; }
 
-            #endregion Properties (3)
+            #endregion Properties (2)
 
             #region Methods (11)
 
