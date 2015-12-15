@@ -30,6 +30,7 @@
 using MarcelJoachimKloubert.Extensions;
 using MarcelJoachimKloubert.Messages.Tests.AddressBooks;
 using System;
+using System.Threading;
 
 namespace MarcelJoachimKloubert.Messages.Tests
 {
@@ -53,6 +54,8 @@ namespace MarcelJoachimKloubert.Messages.Tests
 
                 thunderbird.RegisterTo(distributor)
                            .RegisterFor<INewContact>();
+
+                Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
 
                 outlook.CreateContact("Marcel", "Kloubert",
                                       "marcel.kloubert@gmx.net");

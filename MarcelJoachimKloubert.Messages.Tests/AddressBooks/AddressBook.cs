@@ -57,15 +57,18 @@ namespace MarcelJoachimKloubert.Messages.Tests.AddressBooks
             }
         }
 
-        // the logic that creates the new contact entry where
+        // the logic that creates the new contact entry in
+        // the current address book
         protected virtual void CreateContactHere(string firstName, string lastName,
                                                  string email)
         {
         }
 
         // receive a new contact from another address book
-        [ReceiveMessage]
-        protected abstract void ReceiveNewContact(INewContact contact);
+        [ReceiveMessage(MessageThreadOption.Background)]
+        protected virtual void ReceiveNewContact(INewContact contact)
+        {
+        }
 
         #endregion Methods (3)
     }

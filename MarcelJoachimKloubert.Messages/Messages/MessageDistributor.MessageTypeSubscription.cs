@@ -35,20 +35,18 @@ namespace MarcelJoachimKloubert.Messages
     {
         internal class MessageTypeSubscription : IEquatable<Delegate>, IEquatable<MessageTypeSubscription>
         {
-            #region Fields (4)
+            #region Fields (3)
 
             internal readonly Delegate ACTION;
             internal readonly Delegate KEY;
             internal readonly MessageType MESSAGE_TYPE;
-            internal readonly object SYNC_ROOT;
 
-            #endregion Fields (4)
+            #endregion Fields (3)
 
             #region Constructors (1)
 
             internal MessageTypeSubscription(MessageType msgType, Delegate key, Delegate action)
             {
-                SYNC_ROOT = new object();
                 MESSAGE_TYPE = msgType;
                 KEY = key;
                 ACTION = action;
@@ -73,10 +71,14 @@ namespace MarcelJoachimKloubert.Messages
 
             public override bool Equals(object obj)
             {
-                var @delegate = obj as Delegate;
-                if (@delegate != null)
+                if (obj is Delegate)
                 {
-                    return Equals(other: @delegate);
+                    return Equals((Delegate)obj);
+                }
+
+                if (obj is MessageTypeSubscription)
+                {
+                    return Equals((MessageTypeSubscription)obj);
                 }
 
                 return base.Equals(obj);

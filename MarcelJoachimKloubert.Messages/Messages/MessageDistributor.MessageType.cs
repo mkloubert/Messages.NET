@@ -7,12 +7,13 @@ namespace MarcelJoachimKloubert.Messages
     {
         internal class MessageType : IEquatable<Type>, IEquatable<MessageType>
         {
-            #region Fields (2)
+            #region Fields (3)
 
             internal readonly Type KEY;
             internal readonly ICollection<MessageTypeSubscription> SUBSCRIPTIONS = new HashSet<MessageTypeSubscription>();
+            internal readonly object SYNC_ROOT = new object();
 
-            #endregion Fields (2)
+            #endregion Fields (3)
 
             #region Constructors (1)
 
@@ -38,10 +39,14 @@ namespace MarcelJoachimKloubert.Messages
 
             public override bool Equals(object obj)
             {
-                var type = obj as Type;
-                if (type != null)
+                if (obj is Type)
                 {
-                    return Equals(other: type);
+                    return Equals((Type)obj);
+                }
+
+                if (obj is MessageType)
+                {
+                    return Equals((MessageType)obj);
                 }
 
                 return base.Equals(obj);
