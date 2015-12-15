@@ -404,7 +404,7 @@ namespace MarcelJoachimKloubert.Messages
                     var newSubscription = new MessageTypeSubscription(
                         msgType: msgType,
                         key: handler,
-                        action: WrapSubscribeHandler<TMsg>(handler: handler,
+                        action: WrapSubscribeHandler<TMsg>(handler: handler, msgType: msgType,
                                                            threadOption: threadOption,
                                                            isSynchronized: isSynchronized));
 
@@ -447,66 +447,98 @@ namespace MarcelJoachimKloubert.Messages
             {
                 lock (SyncRoot)
                 {
+                    var msgType = TryFindMessageType(typeof(TMsg));
+                    if (msgType != null)
+                    {
+                        MESSAGE_TYPES.Remove(msgType);
+                    }
                 }
 
                 return this;
             }
 
             private Action<IMessageContext<TMsg>> WrapSubscribeHandler<TMsg>(Action<IMessageContext<TMsg>> handler,
+                                                                             MessageType msgType,
                                                                              MessageThreadOption threadOption,
                                                                              bool isSynchronized)
             {
                 var actionToInvoke = handler;
 
-                if (threadOption == MessageThreadOption.Background)
+                switch (threadOption)
                 {
-                    Action<object> taskAction = (s) =>
+                    case MessageThreadOption.Background:
                         {
-                            var taskArgs = (object[])s;
+                            Action<object> taskAction = (s) =>
+                                {
+                                    var taskArgs = (object[])s;
 
-                            var h = (Action<IMessageContext<TMsg>>)taskArgs[0];
-                            var mc = (IMessageContext<TMsg>)taskArgs[1];
+                                    var h = (Action<IMessageContext<TMsg>>)taskArgs[0];
+                                    var mc = (IMessageContext<TMsg>)taskArgs[1];
 
-                            h(mc);
-                        };
+                                    h(mc);
+                                };
 
-                    var realTaskAction = taskAction;
-                    if (isSynchronized)
-                    {
-                        var syncRoot = new object();
-
-                        realTaskAction = (s) =>
+                            if (isSynchronized)
                             {
-                                lock (syncRoot)
-                                {
-                                    taskAction(s);
-                                }
-                            };
-                    }
+                                var unsynchronizedAction = taskAction;
 
-                    actionToInvoke = (msgCtx) =>
+                                taskAction = (s) =>
+                                    {
+                                        lock (msgType.SYNC_ROOT)
+                                        {
+                                            unsynchronizedAction(s);
+                                        }
+                                    };
+                            }
+
+                            actionToInvoke = (msgCtx) =>
+                                {
+                                    var newTask = new Task(action: taskAction,
+                                                           state: new object[] { handler, msgCtx });
+                                    newTask.ContinueWith((task) =>
+                                        {
+                                            if (!task.IsFaulted)
+                                            {
+                                                return;
+                                            }
+
+                                            var ex = task.Exception;
+                                            if (ex == null ||
+                                                ex.InnerExceptions.Count < 1)
+                                            {
+                                                return;
+                                            }
+
+                                            RaiseReceiveMessageError(msgCtx, ex);
+                                        });
+
+                                    var scheduler = Distributor.TaskScheduler;
+                                    if (scheduler == null)
+                                    {
+                                        newTask.Start();
+                                    }
+                                    else
+                                    {
+                                        newTask.Start(scheduler);
+                                    }
+                                };
+                        }
+                        break;
+
+                    default:
+                        if (isSynchronized)
                         {
-                            var newTask = new Task(action: realTaskAction,
-                                                   state: new object[] { handler, msgCtx });
-                            newTask.ContinueWith((task) =>
+                            var unsynchronizedAction = actionToInvoke;
+
+                            actionToInvoke = (msgCtx) =>
                                 {
-                                    if (!task.IsFaulted)
+                                    lock (msgType.SYNC_ROOT)
                                     {
-                                        return;
+                                        unsynchronizedAction(msgCtx);
                                     }
-
-                                    var ex = task.Exception;
-                                    if (ex == null ||
-                                        ex.InnerExceptions.Count < 1)
-                                    {
-                                        return;
-                                    }
-
-                                    RaiseReceiveMessageError(msgCtx, ex);
-                                });
-
-                            newTask.Start();
-                        };
+                                };
+                        }
+                        break;
                 }
 
                 return (msgCtx) =>

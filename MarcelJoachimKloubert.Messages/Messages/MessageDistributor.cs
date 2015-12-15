@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
 
 namespace MarcelJoachimKloubert.Messages
 {
@@ -105,7 +106,7 @@ namespace MarcelJoachimKloubert.Messages
 
         #endregion Events (4)
 
-        #region Properties (5)
+        #region Properties (6)
 
         /// <summary>
         /// Gets if the handler has been disposed or not.
@@ -131,11 +132,16 @@ namespace MarcelJoachimKloubert.Messages
         public virtual object Tag { get; set; }
 
         /// <summary>
+        /// Gets or sets the custom task scheduler for background actions.
+        /// </summary>
+        public TaskScheduler TaskScheduler { get; set; }
+
+        /// <summary>
         /// Gets or sets the function that provides the current time.
         /// </summary>
         public Func<DateTimeOffset> TimeProvider { get; set; }
 
-        #endregion Properties (5)
+        #endregion Properties (6)
 
         #region Methods (18)
 
