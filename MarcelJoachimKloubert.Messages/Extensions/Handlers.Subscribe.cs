@@ -29,6 +29,8 @@
 
 using MarcelJoachimKloubert.Messages;
 using System;
+using System.Linq;
+using System.Reflection;
 
 namespace MarcelJoachimKloubert.Extensions
 {
@@ -127,11 +129,42 @@ namespace MarcelJoachimKloubert.Extensions
                 throw new ArgumentNullException("handler");
             }
 
-            var sm = GetHandlerContextMethod<TCtx>(() => ctx.Subscribe<object>(handler,
-                                                                               threadOption,
-                                                                               isSynchronized)).MakeGenericMethod(msgType);
+            var sm = typeof(TCtx)
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                .First(x =>
+                       {
+                           if (x.Name != "Subscribe")
+                           {
+                               return false;
+                           }
 
-            sm.Invoke(obj: ctx,
+                           if (!x.IsGenericMethod)
+                           {
+                               return false;
+                           }
+
+                           var genericParams = x.GetGenericArguments();
+                           if (genericParams.Length != 1)
+                           {
+                                return false;
+                           }
+
+                           var @params = x.GetParameters();
+                           if (@params.Length != 3)
+                           {
+                               return false;
+                           }
+
+                           var messageCtxType = typeof(IMessageContext<>).MakeGenericType(genericParams[0]);
+                           var methodActionType = typeof(Action<>).MakeGenericType(messageCtxType);
+
+                           return methodActionType == @params[0].ParameterType &&
+                                  typeof(MessageThreadOption) == @params[1].ParameterType &&
+                                  typeof(bool) == @params[2].ParameterType;
+                       });
+
+            sm.MakeGenericMethod(msgType)
+              .Invoke(obj: ctx,
                       parameters: new object[] { handler, threadOption, isSynchronized });
 
             return ctx;
