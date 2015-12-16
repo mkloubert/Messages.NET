@@ -53,10 +53,9 @@ namespace MarcelJoachimKloubert.Extensions
                 throw new ArgumentNullException(nameof(msgType));
             }
 
-            var uam = GetHandlerContextMethod<TCtx>(() => ctx.UnsubscribeAll<object>()).MakeGenericMethod(msgType);
-
-            uam.Invoke(obj: ctx,
-                       parameters: null);
+            GetUnsubscribeAllMethod(ctx).MakeGenericMethod(msgType)
+                                        .Invoke(obj: ctx,
+                                                parameters: null);
 
             return ctx;
         }

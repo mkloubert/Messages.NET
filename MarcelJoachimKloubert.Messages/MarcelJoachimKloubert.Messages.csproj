@@ -61,9 +61,6 @@
     <Compile Include="Extensions\Handlers.GetMessageTypes.cs">
       <DependentUpon>Handlers.cs</DependentUpon>
     </Compile>
-    <Compile Include="Extensions\Handlers.Unsubscribe.cs">
-      <DependentUpon>Handlers.cs</DependentUpon>
-    </Compile>
     <Compile Include="Extensions\Handlers.cs" />
     <Compile Include="Extensions\Handlers.RegisterFor.cs">
       <DependentUpon>Handlers.cs</DependentUpon>

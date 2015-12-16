@@ -27,45 +27,77 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using MarcelJoachimKloubert.Messages;
-using System;
+using MarcelJoachimKloubert.Extensions;
+using MarcelJoachimKloubert.Messages.Tests.Contracts;
+using NUnit.Framework;
+using System.Linq;
 
-namespace MarcelJoachimKloubert.Extensions
+namespace MarcelJoachimKloubert.Messages.Tests.Tests.Extensions
 {
-    // Unsubscribe()
-    static partial class MJKMessageExtensionMethods
+    public class GetMessageTypesTests : TestFixtureBase
     {
-        #region Methods (1)
+        #region Methods
 
-        /// <summary>
-        /// <see cref="IMessageHandlerContext.Unsubscribe{TMsg}(Action{IMessageContext{TMsg}})" />
-        /// </summary>
-        public static TCtx Unsubscribe<TCtx>(this TCtx ctx, Type msgType, Action<IMessageContext<object>> handler)
-            where TCtx : IMessageHandlerContext
+        [Test]
+        public void Test1()
         {
-            if (ctx == null)
+            var ab = new OutlookAddressBook();
+
+            using (var distributor = new MessageDistributor())
             {
-                throw new ArgumentNullException(nameof(ctx));
+                distributor.RegisterHandler(ab);
+
+                Assert.IsTrue(new[] { typeof(INewContact) }.SequenceEqual(ab.Context
+                                                                            .GetMessageTypes()));
             }
-
-            if (msgType == null)
-            {
-                throw new ArgumentNullException(nameof(msgType));
-            }
-
-            if (handler == null)
-            {
-                throw new ArgumentNullException(nameof(handler));
-            }
-
-            var um = GetHandlerContextMethod<TCtx>(() => ctx.Unsubscribe<object>(handler)).MakeGenericMethod(msgType);
-
-            um.Invoke(obj: ctx,
-                      parameters: new object[] { handler });
-
-            return ctx;
         }
 
-        #endregion Methods (1)
+        [Test]
+        public void Test2()
+        {
+            var ab = new ThunderbirdAddressBook();
+
+            using (var distributor = new MessageDistributor())
+            {
+                distributor.RegisterHandler(ab);
+
+                Assert.IsTrue(new[] { typeof(INewContact) }.SequenceEqual(ab.Context
+                                                                            .GetMessageTypes()));
+            }
+        }
+
+        #endregion Methods
+
+        #region Classes
+
+        private class OutlookAddressBook : MessageHandlerBase
+        {
+            #region Methods
+
+            [ReceiveMessage]
+            protected void GetNewContact(IMessageContext<INewContact> ctx)
+            {
+            }
+
+            #endregion Methods
+        }
+
+        private class ThunderbirdAddressBook : MessageHandlerBase
+        {
+            #region Methods
+
+            protected void GetNewContact(IMessageContext<INewContact> ctx)
+            {
+            }
+
+            protected override void OnContextUpdated(IMessageHandlerContext oldCtx, IMessageHandlerContext newCtx)
+            {
+                newCtx.Subscribe<INewContact>(GetNewContact);
+            }
+
+            #endregion Methods
+        }
+
+        #endregion Classes
     }
 }

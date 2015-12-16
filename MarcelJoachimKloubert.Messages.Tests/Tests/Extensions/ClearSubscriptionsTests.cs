@@ -27,54 +27,97 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using MarcelJoachimKloubert.Messages;
-using System;
+using MarcelJoachimKloubert.Extensions;
+using MarcelJoachimKloubert.Messages.Tests.Contracts;
+using NUnit.Framework;
 using System.Linq;
 
-namespace MarcelJoachimKloubert.Extensions
+namespace MarcelJoachimKloubert.Messages.Tests.Tests.Extensions
 {
-    // ClearSubscriptions
-    static partial class MJKMessageExtensionMethods
+    public class ClearSubscriptionsTests : TestFixtureBase
     {
-        #region Methods (1)
+        #region Methods
 
-        /// <summary>
-        /// Removes all subscriptions.
-        /// </summary>
-        /// <typeparam name="TCtx">Type of the handler context.</typeparam>
-        /// <param name="ctx">The handler context.</param>
-        /// <returns>The instance from <paramref name="ctx" />.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="ctx" /> is <see langword="null" />.
-        /// </exception>
-        public static TCtx ClearSubscriptions<TCtx>(this TCtx ctx)
-            where TCtx : IMessageHandlerContext
+        [Test]
+        public void Test1()
         {
-            if (ctx == null)
-            {
-                throw new ArgumentNullException(nameof(ctx));
-            }
+            var ab = new OutlookAddressBook();
 
-            using (var e = ctx.GetSubscriptions().Select(x => x.Key).GetEnumerator())
+            using (var distributor = new MessageDistributor())
             {
-                while (e.MoveNext())
-                {
-                    try
-                    {
-                        GetUnsubscribeAllMethod(ctx).MakeGenericMethod(e.Current)
-                                                    .Invoke(obj: ctx,
-                                                            parameters: null);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw ex.GetBaseException();
-                    }
-                }
-            }
+                distributor.RegisterHandler(ab);
 
-            return ctx;
+                Assert.IsTrue(new[] { typeof(INewContact) }.SequenceEqual(ab.Context
+                                                                            .GetMessageTypes()));
+
+                ab.Reset();
+
+                Assert.AreEqual(ab.Context.GetMessageTypes().Count(), 0);
+                Assert.AreEqual(ab.Context.GetSubscriptions().Count, 0);
+            }
         }
 
-        #endregion Methods (1)
+        [Test]
+        public void Test2()
+        {
+            var ab = new ThunderbirdAddressBook();
+
+            using (var distributor = new MessageDistributor())
+            {
+                distributor.RegisterHandler(ab);
+
+                Assert.IsTrue(new[] { typeof(INewContact) }.SequenceEqual(ab.Context
+                                                                            .GetMessageTypes()));
+
+                ab.Reset();
+
+                Assert.AreEqual(ab.Context.GetMessageTypes().Count(), 0);
+                Assert.AreEqual(ab.Context.GetSubscriptions().Count, 0);
+            }
+        }
+
+        #endregion Methods
+
+        #region Classes
+
+        private class OutlookAddressBook : MessageHandlerBase
+        {
+            #region Methods
+
+            [ReceiveMessage]
+            protected void GetNewContact(IMessageContext<INewContact> ctx)
+            {
+            }
+
+            public void Reset()
+            {
+                Context.ClearSubscriptions();
+            }
+
+            #endregion Methods
+        }
+
+        private class ThunderbirdAddressBook : MessageHandlerBase
+        {
+            #region Methods
+
+            protected void GetNewContact(IMessageContext<INewContact> ctx)
+            {
+            }
+
+            protected override void OnContextUpdated(IMessageHandlerContext oldCtx, IMessageHandlerContext newCtx)
+            {
+                newCtx.Subscribe<INewContact>(GetNewContact);
+            }
+
+            public void Reset()
+            {
+                Context.ClearSubscriptions();
+            }
+
+            #endregion Methods
+        }
+
+        #endregion Classes
     }
 }

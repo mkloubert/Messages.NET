@@ -27,54 +27,12 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using MarcelJoachimKloubert.Messages;
-using System;
-using System.Linq;
-
-namespace MarcelJoachimKloubert.Extensions
+namespace MarcelJoachimKloubert.Messages.Tests.Contracts
 {
-    // ClearSubscriptions
-    static partial class MJKMessageExtensionMethods
+    public interface INewContact
     {
-        #region Methods (1)
+        string Firstname { get; set; }
 
-        /// <summary>
-        /// Removes all subscriptions.
-        /// </summary>
-        /// <typeparam name="TCtx">Type of the handler context.</typeparam>
-        /// <param name="ctx">The handler context.</param>
-        /// <returns>The instance from <paramref name="ctx" />.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="ctx" /> is <see langword="null" />.
-        /// </exception>
-        public static TCtx ClearSubscriptions<TCtx>(this TCtx ctx)
-            where TCtx : IMessageHandlerContext
-        {
-            if (ctx == null)
-            {
-                throw new ArgumentNullException(nameof(ctx));
-            }
-
-            using (var e = ctx.GetSubscriptions().Select(x => x.Key).GetEnumerator())
-            {
-                while (e.MoveNext())
-                {
-                    try
-                    {
-                        GetUnsubscribeAllMethod(ctx).MakeGenericMethod(e.Current)
-                                                    .Invoke(obj: ctx,
-                                                            parameters: null);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw ex.GetBaseException();
-                    }
-                }
-            }
-
-            return ctx;
-        }
-
-        #endregion Methods (1)
+        string Lastname { get; set; }
     }
 }

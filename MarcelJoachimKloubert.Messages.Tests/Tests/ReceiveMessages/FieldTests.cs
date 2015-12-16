@@ -27,57 +27,14 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.Messages.Tests.Contracts;
 using NUnit.Framework;
 
-namespace MarcelJoachimKloubert.Messages.Tests.ReceiveMessages
+namespace MarcelJoachimKloubert.Messages.Tests.Tests.ReceiveMessages
 {
     public class FieldTests : TestFixtureBase
     {
-        #region INTERFACE: INewContact
-
-        public interface INewContact
-        {
-            string Firstname { get; set; }
-
-            string Lastname { get; set; }
-        }
-
-        #endregion INTERFACE: INewContact
-
-        #region CLASS: AddressBook
-
-        private class AddressBook : MessageHandlerBase
-        {
-            [ReceiveMessage]
-            public IMessageContext<INewContact> LastNewContact;
-
-            public string Name;
-
-            public bool CreateNewContact(string firstname, string lastname, out INewMessageContext<INewContact> newMsg)
-            {
-                ThrowIfDisposed();
-
-                newMsg = Context.CreateMessage<INewContact>();
-                newMsg.Tag = Name;
-
-                var newContact = newMsg.Message;
-                newContact.Firstname = firstname;
-                newContact.Lastname = lastname;
-
-                return newMsg.Send();
-            }
-
-            public void Reset()
-            {
-                ThrowIfDisposed();
-
-                LastNewContact = null;
-            }
-        }
-
-        #endregion CLASS: AddressBook
-
-        #region Tests (3)
+        #region Methods
 
         [Test]
         public void Test1()
@@ -283,6 +240,47 @@ namespace MarcelJoachimKloubert.Messages.Tests.ReceiveMessages
             Assert.IsTrue(thunderbird.IsDisposed);
         }
 
-        #endregion Tests (3)
+        #endregion Methods
+
+        #region Classes
+
+        private class AddressBook : MessageHandlerBase
+        {
+            #region Fields
+
+            [ReceiveMessage]
+            public IMessageContext<INewContact> LastNewContact;
+
+            public string Name;
+
+            #endregion Fields
+
+            #region Methods
+
+            public bool CreateNewContact(string firstname, string lastname, out INewMessageContext<INewContact> newMsg)
+            {
+                ThrowIfDisposed();
+
+                newMsg = Context.CreateMessage<INewContact>();
+                newMsg.Tag = Name;
+
+                var newContact = newMsg.Message;
+                newContact.Firstname = firstname;
+                newContact.Lastname = lastname;
+
+                return newMsg.Send();
+            }
+
+            public void Reset()
+            {
+                ThrowIfDisposed();
+
+                LastNewContact = null;
+            }
+
+            #endregion Methods
+        }
+
+        #endregion Classes
     }
 }
