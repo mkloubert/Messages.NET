@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit.framework, Version=3.0.5813.39032, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>_libs\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -41,12 +45,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AddressBooks\AddressBook.cs" />
-    <Compile Include="AddressBooks\INewContact.cs" />
-    <Compile Include="AddressBooks\OutlookAddressBook.cs" />
-    <Compile Include="AddressBooks\ThunderbirdAddressBook.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestFixtureBase.cs" />
+    <Compile Include="Tests\ReceiveMessages\EventTests.cs" />
+    <Compile Include="Tests\ReceiveMessages\FieldTests.cs" />
+    <Compile Include="Tests\ReceiveMessages\MethodTests.cs" />
+    <Compile Include="Tests\ReceiveMessages\PropertyTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MarcelJoachimKloubert.Messages\MarcelJoachimKloubert.Messages.csproj">
@@ -58,6 +63,9 @@
     <EmbeddedResource Include="..\LICENSE">
       <Link>LICENSE</Link>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="_libs\nunit.framework.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

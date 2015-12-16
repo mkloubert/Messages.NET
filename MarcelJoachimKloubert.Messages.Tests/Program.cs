@@ -1,5 +1,5 @@
 ﻿/**********************************************************************************************************************
- * Messages.NET (https://github.com/mkloubert/Messages.NET)                                                           *
+ * Extensions.NET (https://github.com/mkloubert/Extensions.NET)                                                       *
  *                                                                                                                    *
  * Copyright (c) 2015, Marcel Joachim Kloubert <marcel.kloubert@gmx.net>                                              *
  * All rights reserved.                                                                                               *
@@ -27,50 +27,197 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using MarcelJoachimKloubert.Extensions;
-using MarcelJoachimKloubert.Messages.Tests.AddressBooks;
+using NUnit.Framework;
 using System;
-using System.Threading;
+using System.Linq;
+using System.Reflection;
 
 namespace MarcelJoachimKloubert.Messages.Tests
 {
-    internal static class Program
+    internal class Program
     {
-        #region Methods (1)
+        #region Methods (2)
 
-        private static int Main(string[] args)
+        private static void InvokeForConsole(Action action,
+                                             ConsoleColor? foreColor = null, ConsoleColor? bgColor = null)
+        {
+            var oldForeColor = Console.ForegroundColor;
+            var oldBackColor = Console.BackgroundColor;
+
+            try
+            {
+                if (foreColor.HasValue)
+                {
+                    Console.ForegroundColor = foreColor.Value;
+                }
+
+                if (bgColor.HasValue)
+                {
+                    Console.BackgroundColor = bgColor.Value;
+                }
+
+                if (action != null)
+                {
+                    action();
+                }
+            }
+            finally
+            {
+                Console.ForegroundColor = oldForeColor;
+                Console.BackgroundColor = oldBackColor;
+            }
+        }
+
+        [STAThread]
+        private static int Main()
         {
             var exitCode = 0;
 
             try
             {
-                var outlook = new OutlookAddressBook();
-                var thunderbird = new ThunderbirdAddressBook();
+                var asms = new[]
+                {
+                    Assembly.GetExecutingAssembly(),
+                };
 
-                var distributor = new MessageDistributor();
+                foreach (var type in asms.SelectMany(x => x.GetTypes())
+                                         .Where(t => t.IsPublic &&
+                                                     (t.IsAbstract == false))
+                                         .OrderBy(t => t.Name, StringComparer.InvariantCultureIgnoreCase))
+                {
+                    if (type.GetCustomAttributes(typeof(global::NUnit.Framework.IgnoreAttribute), true)
+                            .Any())
+                    {
+                        continue;
+                    }
 
-                outlook.RegisterTo(distributor)
-                       .RegisterFor<INewContact>();
+                    if (!type.GetCustomAttributes(typeof(global::NUnit.Framework.TestFixtureAttribute), true)
+                             .Any())
+                    {
+                        continue;
+                    }
 
-                thunderbird.RegisterTo(distributor)
-                           .RegisterFor<INewContact>();
+                    try
+                    {
+                        var obj = Activator.CreateInstance(type);
+                        Console.WriteLine("{0} ...", obj.GetType().Name);
 
-                Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+                        var allMethods = obj.GetType()
+                                            .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                                            .OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase)
+                                            .ToArray();
 
-                outlook.CreateContact("Marcel", "Kloubert",
-                                      "marcel.kloubert@gmx.net");
+                        try
+                        {
+                            var fixtureSetupMethod = allMethods.SingleOrDefault(m => m.GetCustomAttributes(typeof(global::NUnit.Framework.OneTimeSetUpAttribute), true)
+                                                                                      .Any());
+                            if (fixtureSetupMethod != null)
+                            {
+                                fixtureSetupMethod.Invoke(obj, null);
+                            }
+
+                            var setupMethod = allMethods.SingleOrDefault(m => m.GetCustomAttributes(typeof(global::NUnit.Framework.SetUpAttribute), true)
+                                                                               .Any());
+
+                            var tearDownMethod = allMethods.SingleOrDefault(m => m.GetCustomAttributes(typeof(global::NUnit.Framework.TearDownAttribute), true)
+                                                                                  .Any());
+
+                            foreach (var method in allMethods)
+                            {
+                                if (method.GetCustomAttributes(typeof(global::NUnit.Framework.IgnoreAttribute), true)
+                                          .Any())
+                                {
+                                    // ignored
+                                    continue;
+                                }
+
+                                var testAttribs = method.GetCustomAttributes(typeof(global::NUnit.Framework.TestAttribute), true)
+                                                        .Cast<TestAttribute>()
+                                                        .ToArray();
+                                if (testAttribs.Length < 1)
+                                {
+                                    // not marked as test
+                                    continue;
+                                }
+
+                                try
+                                {
+                                    Console.Write("\t'{0}' ... ", method.Name);
+
+                                    if (setupMethod != null)
+                                    {
+                                        setupMethod.Invoke(obj, null);
+                                    }
+
+                                    method.Invoke(obj, null);
+
+                                    InvokeForConsole(() => Console.WriteLine("[OK]"),
+                                                     ConsoleColor.Green,
+                                                     ConsoleColor.Black);
+                                }
+                                catch (Exception ex)
+                                {
+                                    var innerEx = ex.GetBaseException();
+
+                                    var aex = innerEx as AssertionException;
+                                    if (aex != null)
+                                    {
+                                        InvokeForConsole(() => Console.WriteLine("[Failed]: {0}",
+                                                                                 aex.Message),
+                                                         ConsoleColor.Red,
+                                                         ConsoleColor.Black);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("[ERROR!]: {0}",
+                                                          ex.GetBaseException());
+                                    }
+                                }
+                                finally
+                                {
+                                    if (tearDownMethod != null)
+                                    {
+                                        tearDownMethod.Invoke(obj, null);
+                                    }
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            var fixtureTearDownMethod = allMethods.SingleOrDefault(m => m.GetCustomAttributes(typeof(global::NUnit.Framework.OneTimeTearDownAttribute), true)
+                                                                                         .Any());
+                            if (fixtureTearDownMethod != null)
+                            {
+                                fixtureTearDownMethod.Invoke(obj, null);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("[ERROR!]: {0}",
+                                          ex.GetBaseException());
+                    }
+                }
             }
-            catch
+            catch (Exception ex)
             {
                 exitCode = 1;
+
+                Console.WriteLine("[ERROR!]: {0}",
+                                  ex.GetBaseException());
             }
 
+            Console.WriteLine();
+            Console.WriteLine();
+
+#if DEBUG
             Console.WriteLine("===== ENTER =====");
             Console.ReadLine();
+#endif
 
             return exitCode;
         }
 
-        #endregion Methods (1)
+        #endregion Methods (2)
     }
 }
