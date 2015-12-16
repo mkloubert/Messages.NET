@@ -138,7 +138,7 @@ namespace MarcelJoachimKloubert.Messages
 
         #endregion Properties (6)
 
-        #region Methods (18)
+        #region Methods (19)
 
         /// <inheriteddoc />
         public void Dispose()
@@ -263,6 +263,21 @@ namespace MarcelJoachimKloubert.Messages
 
                               return methodActionType == @params[0].ParameterType;
                           });
+        }
+
+        private static void InvokeSubscribeMethod(MessageHandlerContext ctx, MethodInfo method,
+                                                  Action<object> action,
+                                                  ReceiveMessageAttribute attrib)
+        {
+            try
+            {
+                method.Invoke(obj: ctx,
+                              parameters: new object[] { action, attrib.ThreadOption, attrib.IsSynchronized });
+            }
+            catch (Exception ex)
+            {
+                throw ex.GetBaseException();
+            }
         }
 
         /// <summary>
@@ -605,8 +620,7 @@ namespace MarcelJoachimKloubert.Messages
                     }
                 });
 
-            sm.Invoke(obj: ctx,
-                      parameters: new object[] { action, attrib.ThreadOption });
+            InvokeSubscribeMethod(ctx, sm, action, attrib);
         }
 
         private static void SubscribeField(MessageHandlerContext ctx, FieldInfo field, ReceiveMessageAttribute attrib)
@@ -625,8 +639,7 @@ namespace MarcelJoachimKloubert.Messages
                                    value: GetRealMemberArgument(msg, fieldType));
                 });
 
-            sm.Invoke(obj: ctx,
-                      parameters: new object[] { action, attrib.ThreadOption });
+            InvokeSubscribeMethod(ctx, sm, action, attrib);
         }
 
         private static void SubscribeMethod(MessageHandlerContext ctx, MethodInfo method, ReceiveMessageAttribute attrib)
@@ -646,8 +659,7 @@ namespace MarcelJoachimKloubert.Messages
                                   parameters: new object[] { GetRealMemberArgument(msg, paramType) });
                 });
 
-            sm.Invoke(obj: ctx,
-                      parameters: new object[] { action, attrib.ThreadOption, attrib.IsSynchronized });
+            InvokeSubscribeMethod(ctx, sm, action, attrib);
         }
 
         private static void SubscribeProperty(MessageHandlerContext ctx, PropertyInfo property, ReceiveMessageAttribute attrib)
@@ -666,8 +678,7 @@ namespace MarcelJoachimKloubert.Messages
                                       index: null);
                 });
 
-            sm.Invoke(obj: ctx,
-                      parameters: new object[] { action, attrib.ThreadOption });
+            InvokeSubscribeMethod(ctx, sm, action, attrib);
         }
 
         /// <summary>
@@ -684,6 +695,6 @@ namespace MarcelJoachimKloubert.Messages
             }
         }
 
-        #endregion Methods (18)
+        #endregion Methods (19)
     }
 }

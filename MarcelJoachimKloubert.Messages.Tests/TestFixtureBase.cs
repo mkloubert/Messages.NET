@@ -27,19 +27,117 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-namespace MarcelJoachimKloubert.Messages.Tests.AddressBooks
-{
-    public class OutlookAddressBook : AddressBook
-    {
-        #region Methods (1)
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-        protected override void ReceiveNewContact(INewContact contact)
+namespace MarcelJoachimKloubert.Messages.Tests
+{
+    [TestFixture]
+    public abstract class TestFixtureBase
+    {
+        #region Fields (1)
+
+        /// <summary>
+        /// The global random generator.
+        /// </summary>
+        protected readonly Random _RANDOM = new Random();
+
+        #endregion Fields (1)
+
+        #region Constructors (1)
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestFixtureBase" /> class.
+        /// </summary>
+        protected TestFixtureBase()
         {
-            if (contact != null) // this is only to stop with the debugger here
-            {
-            }
         }
 
-        #endregion Methods (1)
+        #endregion Constructors (1)
+
+        #region Methods (9)
+
+        /// <summary>
+        /// Returns all (default) encodings that should be used by that test fixture.
+        /// </summary>
+        /// <returns>The list of encodings.</returns>
+        protected virtual IEnumerable<Encoding> GetEncodings()
+        {
+            return Encoding.GetEncodings()
+                           .Select(ei => ei.GetEncoding());
+        }
+
+        /// <summary>
+        /// The logic for the <see cref="TestFixtureBase.SetupFixture" /> method.
+        /// </summary>
+        protected virtual void OnSetupFixture()
+        {
+            // dummy
+        }
+
+        /// <summary>
+        /// The logic for the <see cref="TestFixtureBase.SetupTest" /> method.
+        /// </summary>
+        protected virtual void OnSetupTest()
+        {
+            // dummy
+        }
+
+        /// <summary>
+        /// The logic for the <see cref="TestFixtureBase.TearDownFixture" /> method.
+        /// </summary>
+        protected virtual void OnTearDownFixture()
+        {
+            // dummy
+        }
+
+        /// <summary>
+        /// The logic for the <see cref="TestFixtureBase.TearDownTest" /> method.
+        /// </summary>
+        protected virtual void OnTearDownTest()
+        {
+            // dummy
+        }
+
+        /// <summary>
+        /// Logic for <see cref="OneTimeSetUpAttribute" />.
+        /// </summary>
+        [OneTimeSetUp]
+        public void SetupFixture()
+        {
+            OnSetupFixture();
+        }
+
+        /// <summary>
+        /// Logic for <see cref="SetUpAttribute" />.
+        /// </summary>
+        [SetUp]
+        public void SetupTest()
+        {
+            OnSetupTest();
+        }
+
+        /// <summary>
+        /// Logic for <see cref="OneTimeTearDownAttribute" />.
+        /// </summary>
+        [OneTimeTearDown]
+        public void TearDownFixture()
+        {
+            OnTearDownFixture();
+        }
+
+        /// <summary>
+        /// Logic for <see cref="TearDownAttribute" />.
+        /// </summary>
+        [TearDown]
+        public void TearDownTest()
+        {
+            OnTearDownTest();
+        }
+
+        #endregion Methods (9)
     }
 }
