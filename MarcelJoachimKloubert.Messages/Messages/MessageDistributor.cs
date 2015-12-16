@@ -444,14 +444,14 @@ namespace MarcelJoachimKloubert.Messages
 
                 var handlerType = handler.GetType();
 
-                var flags = BindingFlags.Instance | BindingFlags.Static |
-                            BindingFlags.Public | BindingFlags.NonPublic;
+                const BindingFlags FLAGS = BindingFlags.Instance | BindingFlags.Static |
+                                           BindingFlags.Public | BindingFlags.NonPublic;
 
                 var members = Enumerable.Empty<MemberInfo>()
-                                        .Concat(handlerType.GetFields(flags))
-                                        .Concat(handlerType.GetProperties(flags))
-                                        .Concat(handlerType.GetMethods(flags))
-                                        .Concat(handlerType.GetEvents(flags));
+                                        .Concat(handlerType.GetFields(FLAGS))
+                                        .Concat(handlerType.GetProperties(FLAGS))
+                                        .Concat(handlerType.GetMethods(FLAGS))
+                                        .Concat(handlerType.GetEvents(FLAGS));
 
                 using (var eMembers = members.GetEnumerator())
                 {
@@ -576,12 +576,10 @@ namespace MarcelJoachimKloubert.Messages
             var msgType = attrib.MessageType;
             if (msgType == null)
             {
-                msgType = @event.EventHandlerType
-                                .GetGenericArguments()[0]
-                                .GetGenericArguments()[0];
+                msgType = @event.EventHandlerType  // EventHandler<>
+                                .GetGenericArguments()[0]  // MessageReceivedEventArgs<>
+                                .GetGenericArguments()[0];  // TMsg
             }
-
-            var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
 
             var action = new Action<object>((m) =>
                 {
@@ -598,11 +596,11 @@ namespace MarcelJoachimKloubert.Messages
                         return;
                     }
 
-                    var msg = (IMessageContext<object>)m;
+                    var msgCtx = (IMessageContext<object>)m;
 
                     var eventArgsType = typeof(MessageReceivedEventArgs<>).MakeGenericType(msgType);
                     var eventArgs = Activator.CreateInstance(type: eventArgsType,
-                                                             args: new object[] { msg });
+                                                             args: new object[] { msgCtx });
 
                     IEnumerable<Delegate> eventHandlers;
                     if (eventDelegate is MulticastDelegate)
@@ -619,15 +617,12 @@ namespace MarcelJoachimKloubert.Messages
                         while (e.MoveNext())
                         {
                             var eh = e.Current;
-                            if (eh == null)
-                            {
-                                continue;
-                            }
 
                             try
                             {
                                 eh.Method
-                                  .Invoke(eh.Target, new object[] { handler, eventArgs });
+                                  .Invoke(obj: eh.Target,
+                                          parameters: new object[] { handler, eventArgs });
                             }
                             catch (Exception ex)
                             {
@@ -637,7 +632,9 @@ namespace MarcelJoachimKloubert.Messages
                     }
                 });
 
-            InvokeSubscribeMethod(ctx, sm, action, attrib);
+            InvokeSubscribeMethod(ctx,
+                                  GetSubscribeMethod(ctx).MakeGenericMethod(msgType), action,
+                                  attrib);
         }
 
         private static void SubscribeField(MessageHandlerContext ctx, FieldInfo field, ReceiveMessageAttribute attrib)
@@ -646,17 +643,24 @@ namespace MarcelJoachimKloubert.Messages
 
             var msgType = GetRealMessageType(attrib.MessageType, fieldType);
 
-            var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
-
             var action = new Action<object>((m) =>
                 {
-                    var msg = (IMessageContext<object>)m;
+                    var msgCtx = (IMessageContext<object>)m;
 
-                    field.SetValue(obj: ctx.Handler,
-                                   value: GetRealMemberArgument(msg, fieldType));
+                    try
+                    {
+                        field.SetValue(obj: ctx.Handler,
+                                       value: GetRealMemberArgument(msgCtx, fieldType));
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex.GetBaseException();
+                    }
                 });
 
-            InvokeSubscribeMethod(ctx, sm, action, attrib);
+            InvokeSubscribeMethod(ctx,
+                                  GetSubscribeMethod(ctx).MakeGenericMethod(msgType), action,
+                                  attrib);
         }
 
         private static void SubscribeMethod(MessageHandlerContext ctx, MethodInfo method, ReceiveMessageAttribute attrib)
@@ -666,17 +670,24 @@ namespace MarcelJoachimKloubert.Messages
 
             var msgType = GetRealMessageType(attrib.MessageType, paramType);
 
-            var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
-
             var action = new Action<object>((m) =>
                 {
-                    var msg = (IMessageContext<object>)m;
+                    var msgCtx = (IMessageContext<object>)m;
 
-                    method.Invoke(obj: ctx.Handler,
-                                  parameters: new object[] { GetRealMemberArgument(msg, paramType) });
+                    try
+                    {
+                        method.Invoke(obj: ctx.Handler,
+                                      parameters: new object[] { GetRealMemberArgument(msgCtx, paramType) });
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex.GetBaseException();
+                    }
                 });
 
-            InvokeSubscribeMethod(ctx, sm, action, attrib);
+            InvokeSubscribeMethod(ctx,
+                                  GetSubscribeMethod(ctx).MakeGenericMethod(msgType), action,
+                                  attrib);
         }
 
         private static void SubscribeProperty(MessageHandlerContext ctx, PropertyInfo property, ReceiveMessageAttribute attrib)
@@ -685,17 +696,24 @@ namespace MarcelJoachimKloubert.Messages
 
             var msgType = GetRealMessageType(attrib.MessageType, propertyType);
 
-            var sm = GetSubscribeMethod(ctx).MakeGenericMethod(msgType);
-
             var action = new Action<object>((m) =>
                 {
-                    var msg = (IMessageContext<object>)m;
+                    var msgCtx = (IMessageContext<object>)m;
 
-                    property.SetValue(ctx.Handler, GetRealMemberArgument(msg, propertyType),
-                                      index: null);
+                    try
+                    {
+                        property.SetValue(obj: ctx.Handler, value: GetRealMemberArgument(msgCtx, propertyType),
+                                          index: null);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex.GetBaseException();
+                    }
                 });
 
-            InvokeSubscribeMethod(ctx, sm, action, attrib);
+            InvokeSubscribeMethod(ctx,
+                                  GetSubscribeMethod(ctx).MakeGenericMethod(msgType), action,
+                                  attrib);
         }
 
         /// <summary>

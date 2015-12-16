@@ -28,6 +28,7 @@
  **********************************************************************************************************************/
 
 using MarcelJoachimKloubert.Extensions;
+using MarcelJoachimKloubert.Messages.Tests.Contracts;
 using NUnit.Framework;
 using System;
 
@@ -35,60 +36,7 @@ namespace MarcelJoachimKloubert.Messages.Tests.Tests.Extensions
 {
     public class RegisterForTests : TestFixtureBase
     {
-        #region INTERFACE: INewContact
-
-        public interface INewContact
-        {
-            string Firstname { get; set; }
-
-            string Lastname { get; set; }
-        }
-
-        #endregion INTERFACE: INewContact
-
-        #region CLASS: AddressBook
-
-        private class AddressBook : MessageHandlerBase
-        {
-            public IMessageContext<INewContact> LastNewContact;
-
-            public string Name;
-
-            public bool CreateNewContact(string firstname, string lastname, out INewMessageContext<INewContact> newMsg)
-            {
-                ThrowIfDisposed();
-
-                newMsg = Context.CreateMessage<INewContact>();
-                newMsg.Tag = Name;
-
-                var newContact = newMsg.Message;
-                newContact.Firstname = firstname;
-                newContact.Lastname = lastname;
-
-                return newMsg.Send();
-            }
-
-            [ReceiveMessage]
-            protected void GetNewContact(IMessageContext<INewContact> ctx)
-            {
-                ThrowIfDisposed();
-
-                LastNewContact = ctx;
-
-                ctx.Tag = Name;
-            }
-
-            public void Reset()
-            {
-                ThrowIfDisposed();
-
-                LastNewContact = null;
-            }
-        }
-
-        #endregion CLASS: AddressBook
-
-        #region Tests (3)
+        #region Methods
 
         [Test]
         public void Test1()
@@ -300,6 +248,156 @@ namespace MarcelJoachimKloubert.Messages.Tests.Tests.Extensions
             Assert.IsTrue(thunderbird.IsDisposed);
         }
 
-        #endregion Tests (3)
+        [Test]
+        public void TestRegisterFor1()
+        {
+            var outlook = new AddressBook()
+            {
+                Name = "Outlook",
+            };
+            var thunderbird = new AddressBook()
+            {
+                Name = "Thunderbird",
+            };
+
+            var distributor = new MessageDistributor();
+            using (distributor)
+            {
+                distributor.RegisterHandler(outlook, true)
+                           .RegisterFor<INewContact>();
+
+                distributor.RegisterHandler(thunderbird, true)
+                           .RegisterFor<INewContact>();
+
+                Assert.IsFalse(outlook.IsDisposed);
+                Assert.IsFalse(thunderbird.IsDisposed);
+
+                INewMessageContext<INewContact> newMsg;
+                Assert.IsTrue(outlook.CreateNewContact("Marcel", "Kloubert", out newMsg));
+
+                Assert.IsNotNull(newMsg);
+
+                Assert.AreEqual(newMsg.Tag, outlook.Name);
+
+                Assert.IsNull(outlook.LastNewContact);
+                Assert.IsNotNull(thunderbird.LastNewContact);
+
+                Assert.AreEqual(thunderbird.LastNewContact.CreationTime, newMsg.CreationTime);
+                Assert.AreEqual(thunderbird.LastNewContact.Id, newMsg.Id);
+                Assert.AreEqual(thunderbird.LastNewContact.MessageType, newMsg.MessageType);
+                Assert.AreEqual(thunderbird.LastNewContact.SendTime, newMsg.SendTime);
+
+                Assert.AreNotEqual(newMsg.Tag, thunderbird.LastNewContact.Tag);
+
+                Assert.AreEqual(thunderbird.LastNewContact.Message.Firstname, newMsg.Message.Firstname);
+                Assert.AreEqual(thunderbird.LastNewContact.Message.Lastname, newMsg.Message.Lastname);
+            }
+
+            Assert.IsTrue(distributor.IsDisposed);
+            Assert.IsTrue(outlook.IsDisposed);
+            Assert.IsTrue(thunderbird.IsDisposed);
+        }
+
+        [Test]
+        public void TestRegisterFor2()
+        {
+            var outlook = new AddressBook()
+            {
+                Name = "Outlook",
+            };
+            var thunderbird = new AddressBook()
+            {
+                Name = "Thunderbird",
+            };
+
+            var distributor = new MessageDistributor();
+            using (distributor)
+            {
+                distributor.RegisterHandler(outlook, true)
+                           .RegisterFor(typeof(INewContact));
+
+                distributor.RegisterHandler(thunderbird, true)
+                           .RegisterFor(typeof(INewContact));
+
+                Assert.IsFalse(outlook.IsDisposed);
+                Assert.IsFalse(thunderbird.IsDisposed);
+
+                INewMessageContext<INewContact> newMsg;
+                Assert.IsTrue(outlook.CreateNewContact("Marcel", "Kloubert", out newMsg));
+
+                Assert.IsNotNull(newMsg);
+
+                Assert.AreEqual(newMsg.Tag, outlook.Name);
+
+                Assert.IsNull(outlook.LastNewContact);
+                Assert.IsNotNull(thunderbird.LastNewContact);
+
+                Assert.AreEqual(thunderbird.LastNewContact.CreationTime, newMsg.CreationTime);
+                Assert.AreEqual(thunderbird.LastNewContact.Id, newMsg.Id);
+                Assert.AreEqual(thunderbird.LastNewContact.MessageType, newMsg.MessageType);
+                Assert.AreEqual(thunderbird.LastNewContact.SendTime, newMsg.SendTime);
+
+                Assert.AreNotEqual(newMsg.Tag, thunderbird.LastNewContact.Tag);
+
+                Assert.AreEqual(thunderbird.LastNewContact.Message.Firstname, newMsg.Message.Firstname);
+                Assert.AreEqual(thunderbird.LastNewContact.Message.Lastname, newMsg.Message.Lastname);
+            }
+
+            Assert.IsTrue(distributor.IsDisposed);
+            Assert.IsTrue(outlook.IsDisposed);
+            Assert.IsTrue(thunderbird.IsDisposed);
+        }
+
+        #endregion Methods
+
+        #region Classes
+
+        private class AddressBook : MessageHandlerBase
+        {
+            #region Fields
+
+            public IMessageContext<INewContact> LastNewContact;
+
+            public string Name;
+
+            #endregion Fields
+
+            #region Methods
+
+            public bool CreateNewContact(string firstname, string lastname, out INewMessageContext<INewContact> newMsg)
+            {
+                ThrowIfDisposed();
+
+                newMsg = Context.CreateMessage<INewContact>();
+                newMsg.Tag = Name;
+
+                var newContact = newMsg.Message;
+                newContact.Firstname = firstname;
+                newContact.Lastname = lastname;
+
+                return newMsg.Send();
+            }
+
+            public void Reset()
+            {
+                ThrowIfDisposed();
+
+                LastNewContact = null;
+            }
+
+            [ReceiveMessage]
+            protected void GetNewContact(IMessageContext<INewContact> ctx)
+            {
+                ThrowIfDisposed();
+
+                LastNewContact = ctx;
+
+                ctx.Tag = Name;
+            }
+
+            #endregion Methods
+        }
+
+        #endregion Classes
     }
 }
