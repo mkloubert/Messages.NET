@@ -59,12 +59,16 @@ namespace MarcelJoachimKloubert.Extensions
             {
                 while (e.MoveNext())
                 {
-                    var msgType = e.Current;
-
-                    var uam = GetHandlerContextMethod<TCtx>(() => ctx.UnsubscribeAll<object>()).MakeGenericMethod(msgType);
-
-                    uam.Invoke(obj: ctx,
-                               parameters: null);
+                    try
+                    {
+                        GetUnsubscribeAllMethod(ctx).MakeGenericMethod(e.Current)
+                                                    .Invoke(obj: ctx,
+                                                            parameters: null);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex.GetBaseException();
+                    }
                 }
             }
 

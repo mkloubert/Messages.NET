@@ -275,11 +275,12 @@ namespace MarcelJoachimKloubert.Extensions
                              {
                                  var callbackArgs = (object[])state;
 
-                                 var h = (THandler)callbackArgs[0];
-                                 var a = (Action<THandler, TState>)callbackArgs[1];
-                                 var asp = (Func<THandler, TState>)callbackArgs[2];
+                                 var msgHandler = (THandler)callbackArgs[0];
+                                 var timerAction = (Action<THandler, TState>)callbackArgs[1];
+                                 var timeActionStateProvider = (Func<THandler, TState>)callbackArgs[2];
 
-                                 a(h, asp(h));
+                                 timerAction(msgHandler,
+                                             timeActionStateProvider(msgHandler));
                              },
                              state: new object[] { handler, action, actionStateProvider },
                              dueTime: dueTimeSpan.Value,
