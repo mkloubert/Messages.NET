@@ -5,7 +5,8 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class MessageType : IEquatable<Type>, IEquatable<MessageType>
+        internal class MessageType : MarshalByRefObject,
+                                     IEquatable<Type>, IEquatable<MessageType>
         {
             #region Fields (3)
 

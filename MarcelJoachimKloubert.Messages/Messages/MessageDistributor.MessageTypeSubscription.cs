@@ -33,7 +33,8 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class MessageTypeSubscription : IEquatable<Delegate>, IEquatable<MessageTypeSubscription>
+        internal class MessageTypeSubscription : MarshalByRefObject,
+                                                 IEquatable<Delegate>, IEquatable<MessageTypeSubscription>
         {
             #region Fields (3)
 

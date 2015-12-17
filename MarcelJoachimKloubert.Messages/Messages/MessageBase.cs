@@ -35,7 +35,8 @@ namespace MarcelJoachimKloubert.Messages
     /// <summary>
     /// A basic message.
     /// </summary>
-    public class MessageBase : MarshalByRefObject, ICloneable, ISerializable
+    public class MessageBase : MarshalByRefObject,
+                               ICloneable, ISerializable
     {
         #region Constructors (2)
 

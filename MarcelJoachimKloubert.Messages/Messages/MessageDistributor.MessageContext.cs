@@ -33,7 +33,8 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class MessageContext<TMsg> : MarshalByRefObject, IMessageContext<TMsg>, ICloneable
+        internal class MessageContext<TMsg> : MarshalByRefObject,
+                                              IMessageContext<TMsg>, ICloneable
         {
             #region Fields (2)
 

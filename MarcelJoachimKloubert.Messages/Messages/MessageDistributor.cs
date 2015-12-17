@@ -39,7 +39,8 @@ namespace MarcelJoachimKloubert.Messages
     /// <summary>
     /// A simple and configurable message distributor.
     /// </summary>
-    public partial class MessageDistributor : IDisposable
+    public partial class MessageDistributor : MarshalByRefObject,
+                                              IDisposable
     {
         #region Fields (3)
 

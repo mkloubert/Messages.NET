@@ -6,7 +6,8 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class AggregateMessageHandlerConfiguration : MarshalByRefObject, IMessageHandlerConfiguration
+        internal class AggregateMessageHandlerConfiguration : MarshalByRefObject,
+                                                              IMessageHandlerConfiguration
         {
             #region Fields (2)
 
