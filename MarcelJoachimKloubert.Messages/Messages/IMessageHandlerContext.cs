@@ -52,7 +52,7 @@ namespace MarcelJoachimKloubert.Messages
         /// Creates a new message.
         /// </summary>
         /// <typeparam name="TMsg">Type of the message.</typeparam>
-        /// <returns>The created message (context)</returns>
+        /// <returns>The created message (context).</returns>
         INewMessageContext<TMsg> CreateMessage<TMsg>();
 
         /// <summary>
