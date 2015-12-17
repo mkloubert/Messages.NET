@@ -39,16 +39,14 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class MessageHandlerContext : MarshalByRefObject, IMessageHandlerContext
+        internal class MessageHandlerContext : MarshalByRefObject,
+                                               IMessageHandlerContext
         {
             #region Fields (4)
 
             internal MessageHandlerConfiguration Config;
-
             internal readonly ICollection<MessageType> MESSAGE_TYPES = new HashSet<MessageType>();
-
             internal ModuleBuilder ModuleBuilder;
-
             internal object SYNC_ROOT = new object();
 
             #endregion Fields (4)
@@ -457,10 +455,10 @@ namespace MarcelJoachimKloubert.Messages
                                 {
                                     var taskArgs = (object[])s;
 
-                                    var h = (Action<IMessageContext<TMsg>>)taskArgs[0];
-                                    var mc = (IMessageContext<TMsg>)taskArgs[1];
+                                    var msgHandler = (Action<IMessageContext<TMsg>>)taskArgs[0];
+                                    var msgCtx = (IMessageContext<TMsg>)taskArgs[1];
 
-                                    h(mc);
+                                    msgHandler(msgCtx);
                                 };
 
                             if (isSynchronized)
