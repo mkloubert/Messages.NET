@@ -31,7 +31,8 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class NewMessageLogEntry<TMsg> : MessageLogEntry<TMsg>, INewMessageLogEntry
+        internal class NewMessageLogEntry<TMsg> : MessageLogEntry<TMsg>,
+                                                  INewMessageLogEntry
         {
             #region Properties (2)
 

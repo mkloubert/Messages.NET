@@ -35,7 +35,8 @@ namespace MarcelJoachimKloubert.Messages
 {
     partial class MessageDistributor
     {
-        internal class NewMessageContext<TMsg> : MessageContext<TMsg>, INewMessageContext<TMsg>
+        internal class NewMessageContext<TMsg> : MessageContext<TMsg>,
+                                                 INewMessageContext<TMsg>
         {
             #region Methods (3)
 
