@@ -146,6 +146,7 @@
       <DependentUpon>Handlers.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions\_Extensions.cs" />
+    <Compile Include="Messages\DelegateMessageHandler.cs" />
     <Compile Include="Messages\IMessageContext.cs" />
     <Compile Include="Messages\IMessageHandler.cs" />
     <Compile Include="Messages\IMessageHandlerConfiguration.cs" />
