@@ -55,6 +55,9 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         /// <typeparam name="TMsg">Type of the message.</typeparam>
         /// <returns>The created message (context).</returns>
+        /// <exception cref="ObjectDisposedException">
+        /// Handler has already been disposed.
+        /// </exception>
         public INewMessageContext<TMsg> CreateMessage<TMsg>()
         {
             ThrowIfDisposed();
@@ -73,6 +76,8 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         /// <typeparam name="TMsg">Type of the messages.</typeparam>
         /// <param name="action">The action to subscribe.</param>
+        /// <param name="threadOption">The way <paramref name="action" /> should be receive a message.</param>
+        /// <param name="isSynchronized">Invoke action thread safe or not.</param>
         /// <returns>That instance.</returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="action" /> is <see langword="null" />.
@@ -80,11 +85,14 @@ namespace MarcelJoachimKloubert.Messages
         /// <exception cref="ObjectDisposedException">
         /// Handler has already been disposed.
         /// </exception>
-        public DelegateMessageHandler Subscribe<TMsg>(Action<IMessageContext<TMsg>> action)
+        public DelegateMessageHandler Subscribe<TMsg>(Action<IMessageContext<TMsg>> action,
+                                                      MessageThreadOption threadOption = MessageThreadOption.Current,
+                                                      bool isSynchronized = false)
         {
             ThrowIfDisposed();
 
-            Context.Subscribe<TMsg>(action);
+            Context.Subscribe<TMsg>(handler: action,
+                                    threadOption: threadOption, isSynchronized: isSynchronized);
 
             return this;
         }
@@ -94,6 +102,8 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         /// <typeparam name="TMsg">Type of the messages.</typeparam>
         /// <param name="noContextAction">The action to subscribe.</param>
+        /// <param name="threadOption">The way <paramref name="noContextAction" /> should be receive a message.</param>
+        /// <param name="isSynchronized">Invoke action thread safe or not.</param>
         /// <returns>The action that is used for the subscription.</returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="noContextAction" /> is <see langword="null" />.
@@ -101,11 +111,14 @@ namespace MarcelJoachimKloubert.Messages
         /// <exception cref="ObjectDisposedException">
         /// Handler has already been disposed.
         /// </exception>
-        public Action<IMessageContext<TMsg>> Subscribe<TMsg>(Action<TMsg> noContextAction)
+        public Action<IMessageContext<TMsg>> Subscribe<TMsg>(Action<TMsg> noContextAction,
+                                                             MessageThreadOption threadOption = MessageThreadOption.Current,
+                                                             bool isSynchronized = false)
         {
             ThrowIfDisposed();
 
-            return Context.Subscribe<TMsg>(noContextHandler: noContextAction);
+            return Context.Subscribe<TMsg>(noContextHandler: noContextAction,
+                                           threadOption: threadOption, isSynchronized: isSynchronized);
         }
 
         /// <summary>
@@ -113,6 +126,8 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         /// <param name="msgType">The message type.</param>
         /// <param name="action">The action to subscribe.</param>
+        /// <param name="threadOption">The way <paramref name="action" /> should be receive a message.</param>
+        /// <param name="isSynchronized">Invoke action thread safe or not.</param>
         /// <returns>That instance.</returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="msgType" /> and/or <paramref name="action" /> is <see langword="null" />.
@@ -120,12 +135,14 @@ namespace MarcelJoachimKloubert.Messages
         /// <exception cref="ObjectDisposedException">
         /// Handler has already been disposed.
         /// </exception>
-        public DelegateMessageHandler Subscribe(Type msgType, Action<IMessageContext<object>> action)
+        public DelegateMessageHandler Subscribe(Type msgType, Action<IMessageContext<object>> action,
+                                                MessageThreadOption threadOption = MessageThreadOption.Current,
+                                                bool isSynchronized = false)
         {
             ThrowIfDisposed();
 
-            Context.Subscribe(msgType: msgType,
-                              handler: action);
+            Context.Subscribe(msgType: msgType, handler: action,
+                              threadOption: threadOption, isSynchronized: isSynchronized);
 
             return this;
         }
@@ -160,6 +177,9 @@ namespace MarcelJoachimKloubert.Messages
         /// </summary>
         /// <param name="msgType">Type of he messages.</param>
         /// <returns>That instance.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="msgType" /> is <see langword="null" />.
+        /// </exception>
         public DelegateMessageHandler UnsubscribeAll(Type msgType)
         {
             Context.UnsubscribeAll(msgType: msgType);
