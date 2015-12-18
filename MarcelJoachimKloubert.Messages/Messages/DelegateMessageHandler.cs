@@ -37,6 +37,21 @@ namespace MarcelJoachimKloubert.Messages
     /// </summary>
     public class DelegateMessageHandler : MessageHandlerBase
     {
+        #region Constructors (1)
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DelegateMessageHandler" /> class.
+        /// </summary>
+        /// <param name="syncRoot">
+        /// The value for the <see cref="MessageHandlerBase.SyncRoot" /> property.
+        /// </param>
+        public DelegateMessageHandler(object syncRoot = null)
+            : base(syncRoot: syncRoot)
+        {
+        }
+
+        #endregion Constructors (1)
+
         #region Methods (9)
 
         /// <summary>

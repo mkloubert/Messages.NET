@@ -237,38 +237,40 @@ namespace MarcelJoachimKloubert.Messages
 
         private static MethodInfo GetSubscribeMethod(IMessageHandlerContext ctx)
         {
-            var ctxType = ctx.GetType();
+            // get IMessageHandlerContext.Subscribe<TMsg>(Action<IMessageContext<TMsg>>)
+            // method
+            return ctx.GetType()
+                      .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                      .First(x =>
+                             {
+                                 if (x.Name != "Subscribe")
+                                 {
+                                     return false;
+                                 }
 
-            return ctxType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                          .First(x =>
-                          {
-                              if (x.Name != "Subscribe")
-                              {
-                                  return false;
-                              }
+                                 if (!x.IsGenericMethod)
+                                 {
+                                     return false;
+                                 }
 
-                              if (!x.IsGenericMethod)
-                              {
-                                  return false;
-                              }
+                                 var genericParams = x.GetGenericArguments();
+                                 if (genericParams.Length != 1)
+                                 {
+                                     return false;
+                                 }
 
-                              var genericParams = x.GetGenericArguments();
-                              if (genericParams.Length != 1)
-                              {
-                                  return false;
-                              }
+                                 var msgCtxType = typeof(IMessageContext<>).MakeGenericType(genericParams[0]);
+                                 var methodActionType = typeof(Action<>).MakeGenericType(msgCtxType);
 
-                              var @params = x.GetParameters();
-                              if (@params.Length != 3)
-                              {
-                                  return false;
-                              }
-
-                              var messageCtxType = typeof(IMessageContext<>).MakeGenericType(genericParams[0]);
-                              var methodActionType = typeof(Action<>).MakeGenericType(messageCtxType);
-
-                              return methodActionType == @params[0].ParameterType;
-                          });
+                                 return x.GetParameters()
+                                         .Select(y => y.ParameterType)
+                                         .SequenceEqual(new[]
+                                                        {
+                                                            methodActionType,
+                                                            typeof(MessageThreadOption),
+                                                            typeof(bool),
+                                                        });
+                             });
         }
 
         private static void InvokeSubscribeMethod(MessageHandlerContext ctx, MethodInfo method,
